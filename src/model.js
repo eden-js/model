@@ -14,9 +14,13 @@ class DbModel {
    * Construct Model class
    */
   constructor (data, id = null) {
+    // Set internal data from provided argument
     this._data = data;
+
+    // Set internal ID from provided argument
     this._id = id;
 
+    // Set `_id` property of internal data to be own ID
     this._data._id = this._id;
   }
 
@@ -24,23 +28,27 @@ class DbModel {
    * Get internal data by dot-prop key
    */
   get (key = '') {
+    // Return full internal data if key not provided
     if (key.length === 0) {
       return this._data;
     }
 
-    DotProp.get (this._data, key);
+    // Return stored value selected by dot-prop key
+    return DotProp.get (this._data, key);
   }
 
   /**
    * Set internal data by dot-prop key and value, or object containing update information
    */
   set (key, value = null) {
+    // If only argument is an Object, merge Object with internal data
     if (key instanceof Object && value == null) {
       const updateObj = key;
       Object.assign (this._data, updateObj);
       return;
     }
 
+    // Set internal value selected by dot-prop key
     DotProp.set (this._data, key, value);
   }
 
@@ -48,6 +56,7 @@ class DbModel {
    * Save this Model instance's data to the database
    */
   async save () {
+    // Call internal DB API to save this Model instance
     await this.constructor._$_db.saveModel (this);
   }
 
@@ -57,10 +66,15 @@ class DbModel {
   async remove () {
     // TODO: Should delete class itself too?
 
+    // Throw error if not stored in database
     if (this._id == null) {
       throw new Error ('Model not stored in database');
     }
 
+    // Nullify internal ID as no longer exists in database
+    this._id = null;
+
+    // Call internal DB API to remove the data associated with this Model instance by ID
     await this.constructor._$_db.removeModelById (this.constructor, this._id);
   }
 
@@ -68,6 +82,7 @@ class DbModel {
    * Create database query builder from self and associated DB API
    */
   static query () {
+    // Return a newly constructed DbQuery given `this` and internal DB API
     return new DbQuery (this, this._$_db);
   }
 
