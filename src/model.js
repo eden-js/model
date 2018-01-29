@@ -101,7 +101,12 @@ class DbModel {
    */
   async save () {
     // Call internal DB API to save this Model instance
-    await this.constructor._$_db.saveModel (this);
+    const id = await this.constructor._$_db.saveModel (this, this._id);
+
+    if (id != null) {
+      this._id = id;
+      this._data._id = this._id;
+    }
   }
 
   /**
