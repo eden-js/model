@@ -124,13 +124,22 @@ class DbApi {
   }
 }
 
+/**
+ * Public DB API class
+ */
 class Db {
+  /**
+   * Construct public DB API class
+   */
   constructor (dbPlug) {
     this._dbApi = new DbApi (dbPlug);
 
     this.register = this.register.bind (this);
   }
 
+  /**
+   * Register a Model class with this database
+   */
   register (Model) {
     Model._$_db = this._dbApi;
   }
