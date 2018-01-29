@@ -24,7 +24,10 @@ class MongoPlug {
    * Async method that resolves on internal API build completion
    */
   async _build () {
+    // Await connecting to MongoDb and internally store client connection
     this._client = await p (MongoClient).connect (this._config.url);
+    
+    // Internally store db by name provided in config
     this._db = this._client.db (this._config.dbName);
   }
 
@@ -79,6 +82,7 @@ class MongoPlug {
     const mQuery = MQuery (this._db.collection (collectionId));
 
     // Find and return single Model instance data by provided ID
+    // TODO: Handle null
     return await mQuery.findOne ({ _id: id }).exec ();
   }
 
