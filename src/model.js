@@ -125,7 +125,7 @@ class DbModel {
   /**
    * Create database query builder from self and associated DB API
    */
-  static query () {
+  static _query () {
     // Return a newly constructed DbQuery given `this` and internal DB API
     return new DbQuery (this, this._$_db);
   }
@@ -134,33 +134,33 @@ class DbModel {
    * Query-less database actions using simple filter
    */
   // Find Model instances by simple filter
-  static async find (filter = {}) { return await this.query ().where (filter).find () }
+  static async find (filter = {}) { return await this._query ().where (filter).find () }
   // Find single Model instance by simple filter
-  static async findOne (filter = {}) { return this.query ().where (filter).findOne () }
+  static async findOne (filter = {}) { return this._query ().where (filter).findOne () }
   // Count stored Model instances by simple filter
-  static async count (filter = {}) { return this.query ().where (filter).count () }
+  static async count (filter = {}) { return this._query ().where (filter).count () }
   // Remove stored Model instance by simple filter
-  static async remove (filter = {}) { return this.query ().where (filter).remove () }
+  static async remove (filter = {}) { return this._query ().where (filter).remove () }
 
   /**
    * Query constructor methods
    */
   // Create a query builder with initial `limit` set
-  static limit (amt) { return this.query ().limit (amt) }
+  static limit (amt) { return this._query ().limit (amt) }
   // Create a query builder with initial `skip` set
-  static skip (amt) { return this.query ().skip (amt) }
+  static skip (amt) { return this._query ().skip (amt) }
   // Create a query builder with initial `sort` set
-  static sort (key, direction) { return this.query ().sort (key, direction) }
+  static sort (key, direction) { return this._query ().sort (key, direction) }
   // Create a query builder with initial `where` set
-  static where (key, value) { return this.query ().where (key, value) }
+  static where (key, value) { return this._query ().where (key, value) }
   // Create a query builder with initial `gt` set
-  static gt (key, min) { return this.query ().gt (key, min) }
+  static gt (key, min) { return this._query ().gt (key, min) }
   // Create a query builder with initial `lt` set
-  static lt (key, max) { return this.query ().lt (key, max) }
+  static lt (key, max) { return this._query ().lt (key, max) }
   // Create a query builder with initial `gte` set
-  static gte (key, min) { return this.query ().gte (key, min) }
+  static gte (key, min) { return this._query ().gte (key, min) }
   // Create a query builder with initial `gt` set
-  static lte (key, max) { return this.query ().gt (key, max) }
+  static lte (key, max) { return this._query ().gt (key, max) }
 }
 
 // Exports
