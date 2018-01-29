@@ -75,7 +75,7 @@ class DbModel {
   /**
    * Increment fields in internal data by dot-prop key and optional amount
    */
-  increment(key, amt = 1) {
+  increment (key, amt = 1) {
     // TODO: Support incrementing multiple using an object
 
     // Get current value of prop selected by dot-prop key
@@ -87,7 +87,7 @@ class DbModel {
   /**
    * Decrement fields in internal data by dot-prop key and optional amount
    */
-  decrement(key, amt = 1) {
+  decrement (key, amt = 1) {
     // TODO: Support decrementing multiple using an object
 
     // Get current value of prop selected by dot-prop key
