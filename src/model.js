@@ -56,16 +56,19 @@ class DbModel {
    * Un-set internal data by dot-prop key
    */
   unset (key) {
+    // If only argument is an Array, iterate it as array of keys to remove
     if (key instanceof Array) {
       const keys = key;
 
       for (const key of keys) {
+        // Delete prop by key
         DotProp.delete (this._data, key);
       }
 
       return;
     }
 
+    // Delete prop by key
     DotProp.delete (this._data, key);
   }
 
