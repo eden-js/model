@@ -73,6 +73,16 @@ class DbModel {
   }
 
   /**
+   * Increment fields in internal data by dot-prop key and optional amount
+   */
+  increment(key, amt = 1) {
+    // Get current value of prop selected by dot-prop key
+    const currValue = DotProp.get (this._data, key);
+    // Set value of prop selected by dot-prop key to be plus the increment amount (default 1)
+    DotProp.set (this._data, key, currValue + amt);
+  }
+
+  /**
    * Save this Model instance's data to the database
    */
   async save () {
