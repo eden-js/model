@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 // Require dependencies
-const { MongoClient, ObjectId } = require ("mongodb");
-const MQuery = require ("mquery");
-const p = require ("doasync");
+const { MongoClient, ObjectId } = require ('mongodb');
+const MQuery = require ('mquery');
+const p = require ('doasync');
 
 /**
  * MongoDb database plug class
@@ -24,23 +24,23 @@ class MongoPlug {
 
   _queryToCursor (cursor, query) {
     for (const queryPt of query.pts) {
-      if (queryPt.type === "filter") {
+      if (queryPt.type === 'filter') {
         cursor = cursor.where (queryPt.filter);
-      } else if (queryPt.type === "whereEquals") {
+      } else if (queryPt.type === 'whereEquals') {
         cursor = cursor.where ({ [queryPt.match.prop]: queryPt.match.value });
-      } else if (queryPt.type === "limit") {
+      } else if (queryPt.type === 'limit') {
         cursor = cursor.limit (queryPt.limitAmount);
-      } else if (queryPt.type === "skip") {
+      } else if (queryPt.type === 'skip') {
         cursor = cursor.skip (queryPt.skipAmount);
-      } else if (queryPt.type === "sort") {
-        cursor = cursor.sort ({ [queryPt.sortKey]: queryPt.desc ? "desc" : "asc" });
-      } else if (queryPt.type === "gt") {
+      } else if (queryPt.type === 'sort') {
+        cursor = cursor.sort ({ [queryPt.sortKey]: queryPt.desc ? 'desc' : 'asc' });
+      } else if (queryPt.type === 'gt') {
         cursor = cursor.where (queryPt.key).gt (queryPt.min);
-      } else if (queryPt.type === "lt") {
+      } else if (queryPt.type === 'lt') {
         cursor = cursor.where (queryPt.key).lt (queryPt.max);
-      } else if (queryPt.type === "gte") {
+      } else if (queryPt.type === 'gte') {
         cursor = cursor.where (queryPt.key).gte (queryPt.min);
-      } else if (queryPt.type === "lte") {
+      } else if (queryPt.type === 'lte') {
         cursor = cursor.where (queryPt.key).lte (queryPt.max);
       }
     }
