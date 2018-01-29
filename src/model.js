@@ -76,10 +76,24 @@ class DbModel {
    * Increment fields in internal data by dot-prop key and optional amount
    */
   increment(key, amt = 1) {
+    // TODO: Support incrementing multiple using an object
+
     // Get current value of prop selected by dot-prop key
     const currValue = DotProp.get (this._data, key);
     // Set value of prop selected by dot-prop key to be plus the increment amount (default 1)
     DotProp.set (this._data, key, currValue + amt);
+  }
+
+  /**
+   * Decrement fields in internal data by dot-prop key and optional amount
+   */
+  decrement(key, amt = 1) {
+    // TODO: Support decrementing multiple using an object
+
+    // Get current value of prop selected by dot-prop key
+    const currValue = DotProp.get (this._data, key);
+    // Set value of prop selected by dot-prop key to be minus the increment amount (default 1)
+    DotProp.set (this._data, key, currValue - amt);
   }
 
   /**
