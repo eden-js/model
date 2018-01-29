@@ -1,0 +1,19 @@
+{
+  "name": "eden-model",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "installgen2",
+  "license": "LGPL-3.0",
+  "dependencies": {
+    "doasync": "^2.0.0",
+    "dot-prop": "^4.2.0",
+    "mongodb": "^3.0.1",
+    "mquery": "^3.0.0",
+    "pluralize": "^7.0.0",
+    "rethinkdb": "^2.3.3"
+  }
+}
