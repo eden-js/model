@@ -1,5 +1,6 @@
 "use strict";
 
+// Require dependencies
 const { MongoClient, ObjectId } = require ("mongodb");
 const MQuery = require ("mquery");
 const p = require ("doasync");
@@ -163,4 +164,5 @@ class MongoPlug {
   }
 }
 
+// Exports
 module.exports = exports = MongoPlug;
