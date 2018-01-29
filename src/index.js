@@ -8,10 +8,16 @@ const DbModel     = require ('./model');
 const MongoPlug   = require ('./plugs/mongo');
 const RethinkPlug = require ('./plugs/rethink');
 
+/**
+ * Get the appropriate collection ID for a Model
+ */
 function modelCollectionId (Model) {
   return pluralize (Model.name.toLowerCase ());
 }
 
+/**
+ * Get the appropriate collection ID for an instance of a Model
+ */
 function modelInstanceCollectionId (model) {
   return pluralize (model.constructor.name.toLowerCase ());
 }
