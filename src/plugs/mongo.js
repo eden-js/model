@@ -17,11 +17,17 @@ class MongoPlug {
     this._building = this._build ();
   }
 
+  /**
+   * Async method that resolves on internal API build completion
+   */
   async _build () {
     this._client = await p (MongoClient).connect (this._config.url);
     this._db = this._client.db (this._config.dbName);
   }
 
+  /**
+   * Convert a standard constructed query to an MQuery cursor
+   */
   _queryToCursor (cursor, query) {
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
