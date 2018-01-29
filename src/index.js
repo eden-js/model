@@ -46,11 +46,15 @@ class DbApi {
    * Save a Model instance to database
    */
   async saveModel (model) {
+    // Get collection ID of provided Model instance
     const collectionId = modelInstanceCollectionId (model);
 
+    // Check if provided Model instance has an ID already
     if (model.id == null) {
+      // Insert Model instance data and set the associated ID
       model.id = await this._plug.insert (collectionId, model.get ());
     } else {
+      // Update stored Model instance data using existing associated ID
       await this._plug.replaceById (collectionId, model.id, model.get ());
     }
   }
@@ -59,13 +63,18 @@ class DbApi {
    * Find a stored Model instance by Model and an ID
    */
   async findModelById (Model, id) {
+    // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
+
+    // Find single Model instance data matching provided ID
     const foundValue = await this._plug.findById (collectionId, id);
 
+    // Return null if no data was found
     if (foundValue == null) {
       return null;
     }
 
+    // Return Model instance constructed from fetched data
     return new Model (foundValue, id);
   }
 
@@ -73,29 +82,41 @@ class DbApi {
    * Find stored Model instances by Model and provided internal query
    */
   async findModels (Model, query) {
+    // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
+
+    // Find Model instance data matching provided query
     const foundValues = await this._plug.find (collectionId, query);
 
+    // Create array for storing constructed Model instances
     const models = [];
 
+    // Iterate fetched instance data
     for (const foundValue of foundValues) {
+      // Add new Model instance created from fetched data to Model instance array
       models.push (new Model (foundValue.object, foundValue.id));
     }
 
+    // Return array of Model instances
     return models;
   }
 
   /**
    * Find a single stored Model instance by Model and provided internal query
    */
-  async findModel (Model, query) {;
-    const collectionId = modelCollectionId (Model)
+  async findModel (Model, query) {
+    // Get collection ID of provided Model
+    const collectionId = modelCollectionId (Model);
+
+    // Find single Model instance data matching provided query
     const foundValue = await this._plug.findOne (collectionId, query);
 
+    // Return null if no data was found
     if (foundValue == null) {
       return null;
     }
 
+    // Return Model instance constructed from fetched data
     return new Model (foundValue.object, foundValue.id);
   }
 
@@ -103,7 +124,10 @@ class DbApi {
    * Count stored Model instances by Model and provided internal query
    */
   async countModels (Model, query) {
+    // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
+
+    // Return count of Model instances matching provided query
     return await this._plug.count (collectionId, query);
   }
 
@@ -111,7 +135,10 @@ class DbApi {
    * Remove a stored Model instance by Model and an ID
    */
   async removeModelById (Model, id) {
+    // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
+
+    // Remove stored Model instance matching provided ID
     await this._plug.removeById (collectionId, id);
   }
 
@@ -119,7 +146,10 @@ class DbApi {
    * Remove stored Model instances by Model and provided internal query
    */
   async removeModels (Model, query) {
+    // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
+
+    // Remove Model instances matching provided query
     await this._plug.removeById (collectionId, query);
   }
 }
@@ -132,8 +162,10 @@ class Db {
    * Construct public DB API class
    */
   constructor (dbPlug) {
+    // Construct and store an internal DB API class
     this._dbApi = new DbApi (dbPlug);
 
+    // Bind methods to self
     this.register = this.register.bind (this);
   }
 
@@ -141,10 +173,12 @@ class Db {
    * Register a Model class with this database
    */
   register (Model) {
+    // Set internal DB class for the Model to be previously constructed internal DB API class
     Model._$_db = this._dbApi;
   }
 }
 
+// Export classes
 module.exports = exports = {
   Db      : Db,
   DbModel : DbModel,
