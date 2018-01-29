@@ -4,7 +4,13 @@ const { MongoClient, ObjectId } = require ("mongodb");
 const MQuery = require ("mquery");
 const p = require ("doasync");
 
+/**
+ * MongoDb database plug class
+ */
 class MongoPlug {
+  /**
+   * Construct MongoDb database plug class
+   */
   constructor (config) {
     this._config = config;
     this._building = this._build ();
@@ -41,6 +47,9 @@ class MongoPlug {
     return cursor;
   }
 
+  /**
+   * Find Model data by collection ID and Model ID
+   */
   async findById (collectionId, id) {
     await this._building;
 
@@ -48,6 +57,9 @@ class MongoPlug {
     return await mQuery.findOne ({ _id: id }).exec ();
   }
 
+  /**
+   * Find Model data by collection ID and constructed query
+   */
   async find (collectionId, query) {
     await this._building
 
@@ -65,6 +77,9 @@ class MongoPlug {
     })
   }
 
+  /**
+   * Find single Model data by collection ID and Model ID
+   */
   async findOne (collectionId, query) {
     await this._building;
 
@@ -86,6 +101,9 @@ class MongoPlug {
     }
   }
 
+  /**
+   * Get count of Model data by collection ID and constructed query
+   */
   async count (collectionId, query) {
     await this._building;
 
@@ -93,6 +111,9 @@ class MongoPlug {
     return await this._queryToCursor (mQuery, query).count ().exec ();
   }
 
+  /**
+   * Remove matching Model data from database by collection ID and Model ID
+   */
   async removeById (collectionId, id) {
     await this._building
 
@@ -100,6 +121,9 @@ class MongoPlug {
     await mQuery.findOneAndRemove ({ _id: ObjectId (id) }).exec ();
   }
 
+  /**
+   * Remove matching Model data from database by collection ID and constructed query
+   */
   async remove (collectionId, query) {
     await this._building
 
@@ -107,6 +131,9 @@ class MongoPlug {
     await this._queryToCursor (mQuery, query).remove ().exec ();
   }
 
+  /**
+   * Replace matching Model data from database by collection ID, Model ID, and replacement data
+   */
   async replaceById (collectionId, id, newObject) {
     await this._building
 
@@ -114,6 +141,9 @@ class MongoPlug {
     await mQuery.update ({ _id: id }, newObject, { overwrite: true }).exec ();
   }
 
+  /**
+   * Replace matching Model data from database by collection ID, Model ID, and constructed query
+   */
   async replace (collectionId, query, newObject) {
     await this._building;
 
@@ -121,6 +151,9 @@ class MongoPlug {
     await this._queryToCursor (mQuery, query).update ().setOptions ({ overwrite: true, multi: true }).exec ();
   }
 
+  /**
+   * Insert Model data from database by collection ID and return Model ID
+   */
   async insert (collectionId, object) {
     await this._building;
 
