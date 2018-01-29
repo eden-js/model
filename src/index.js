@@ -1,10 +1,11 @@
 'use strict';
 
+// Require dependencies
 const pluralize = require ('pluralize');
 
-const DbModel = require ('./model');
-
-const MongoPlug = require ('./plugs/mongo');
+// Require local dependencies
+const DbModel     = require ('./model');
+const MongoPlug   = require ('./plugs/mongo');
 const RethinkPlug = require ('./plugs/rethink');
 
 function modelCollectionId (Model) {
@@ -18,6 +19,14 @@ function modelInstanceCollectionId (model) {
 class DbApi {
 	constructor (dbPlug) {
 		this._plug = dbPlug;
+
+		this.saveModel       = this.saveModel.bind (this);
+		this.findModelById   = this.findModelById.bind (this);
+		this.findModels      = this.findModels.bind (this);
+		this.findModel       = this.findModel.bind (this);
+		this.countModels     = this.countModels.bind (this);
+		this.removeModelById = this.removeModelById.bind (this);
+		this.removeModels    = this.removeModels.bind (this);
 	}
 
 	async saveModel (model) {
@@ -84,6 +93,8 @@ class DbApi {
 class Db {
 	constructor (dbPlug) {
 		this._dbApi = new DbApi (dbPlug);
+
+		this.register = this.register.bind (this);
 	}
 
 	register (Model) {
