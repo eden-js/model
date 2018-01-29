@@ -26,7 +26,7 @@ class MongoPlug {
   async _build () {
     // Await connecting to MongoDb and internally store client connection
     this._client = await p (MongoClient).connect (this._config.url);
-    
+
     // Internally store db by name provided in config
     this._db = this._client.db (this._config.dbName);
   }
@@ -81,9 +81,28 @@ class MongoPlug {
     // Construct MQuery cursor from collection ID
     const mQuery = MQuery (this._db.collection (collectionId));
 
-    // Find and return single Model instance data by provided ID
-    // TODO: Handle null
-    return await mQuery.findOne ({ _id: id }).exec ();
+    // Find single Model instance data by provided ID
+    const rawModelRes = await mQuery.findOne ({ _id: id }).exec ();
+
+    // If no Model instance data found, return null
+    if (rawModelRes == null) {
+      return null;
+    }
+
+    // Get internal ID from returned data
+    const fetchedModelId = rawModelRes._id;
+
+    // Delete internal ID from the object
+    delete rawModelRes._id;
+
+    // Get remaining now sanitized Model instance data
+    const fetchedModelObject = rawModelRes;
+
+    // Return correctly structured fetched Model instance data
+    return {
+      id     : fetchedModelId,
+      object : fetchedModelObject,
+    }
   }
 
   /**
