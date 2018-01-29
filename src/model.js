@@ -53,6 +53,13 @@ class DbModel {
   }
 
   /**
+   * Un-set internal data by dot-prop key
+   */
+  unset (key) {
+    DotProp.delete (this._data, key);
+  }
+
+  /**
    * Save this Model instance's data to the database
    */
   async save () {
