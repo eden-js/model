@@ -53,7 +53,7 @@ class DbModel {
   }
 
   /**
-   * Un-set internal data by dot-prop key
+   * Un-set internal data by dot-prop key, array if dot-prop keys, or no argument to remove all data
    */
   unset (key = null) {
     // If only argument is an Array, iterate it as array of keys to remove
