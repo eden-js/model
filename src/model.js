@@ -144,6 +144,13 @@ class DbModel {
   }
 
   /**
+   * Find model by ID
+   */
+  static async findById (id) {
+    return await this._$_db.findModelById (this._Model, id);
+  }
+
+  /**
    * Query-less database actions using simple filter
    */
   // Find Model instances by simple filter
