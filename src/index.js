@@ -189,7 +189,7 @@ class Db {
    */
   register (Model) {
     // Set internal DB class for the Model to be previously constructed internal DB API class
-    Model._$_db = this._dbApi;
+    Model.__db = this._dbApi;
   }
 }
 
