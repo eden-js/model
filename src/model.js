@@ -140,7 +140,7 @@ class DbModel {
    */
    async refresh () {
      // Replace this Model instance's internal data with fetched data from the database
-     this.__data = await this.__db.findModelDataById (this._Model, this.__id)
+     this.__data = await this.constructor.__db.findModelDataById (this._Model, this.__id)
    }
 
   /**
