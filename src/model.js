@@ -72,6 +72,8 @@ class DbModel {
     if (key == null) {
       // Redefine internal data object
       this._data = {};
+
+      return;
     }
 
     // Delete prop by key
