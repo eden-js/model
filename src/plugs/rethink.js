@@ -103,7 +103,7 @@ class RethinkPlug {
    */
   async _insert (table, object) {
     // Insert provided object data into provided table and get response
-    const insertRes = await table.insert ({ data: object }).run (this._rethinkConn);
+    const insertRes = await table.insert (object).run (this._rethinkConn);
 
     // Return Model ID from insertation response
     return insertRes['generated_keys'][0];
@@ -116,10 +116,10 @@ class RethinkPlug {
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
         // Apply filter object to `filter` cursor method
-        cursor = cursor.filter ({ data: queryPt.filter });
+        cursor = cursor.filter (queryPt.filter);
       } else if (queryPt.type === 'whereEquals') {
         // Apply constructed filter from key and value object to `filter` cursor method
-        cursor = cursor.filter ({ data: { [queryPt.match.prop]: queryPt.match.value } });
+        cursor = cursor.filter ({ [queryPt.match.prop]: queryPt.match.value });
       } else if (queryPt.type === 'limit') {
         // Apply amt to `limit` cursor method
         cursor = cursor.limit (queryPt.limitAmount);
@@ -128,24 +128,44 @@ class RethinkPlug {
         cursor = cursor.skip (queryPt.skipAmount);
       } else if (queryPt.type === 'sort') {
         // Create sort filter and apply to `orderBy` cursor method
-        cursor = cursor.orderBy (queryPt.desc ? R.desc (R.row ('data') (queryPt.sortKey)) : R.asc (R.row ('data') (queryPt.sortKey)));
+        cursor = cursor.orderBy (queryPt.desc ? R.desc (R.row (queryPt.sortKey)) : R.asc (R.row (queryPt.sortKey)));
       } else if (queryPt.type === 'gt') {
         // Create `gt` filter using provided key and min and apply to `filter` cursor method
-        cursor = cursor.filter (R.row ('data') (queryPt.key).gt (queryPt.min));
+        cursor = cursor.filter (R.row (queryPt.key).gt (queryPt.min));
       } else if (queryPt.type === 'lt') {
         // Create `lt` filter using provided key and min and apply to `filter` cursor method
-        cursor = cursor.filter (R.row ('data') (queryPt.key).lt (queryPt.max));
+        cursor = cursor.filter (R.row (queryPt.key).lt (queryPt.max));
       } else if (queryPt.type === 'gte') {
         // Create `gte` filter using provided key and min and apply to `filter` cursor method
-        cursor = cursor.filter (R.row ('data') (queryPt.key).ge (queryPt.min));
+        cursor = cursor.filter (R.row (queryPt.key).ge (queryPt.min));
       } else if (queryPt.type === 'lte') {
         // Create `lte` filter using provided key and min and apply to `filter` cursor method
-        cursor = cursor.filter (R.row ('data') (queryPt.key).le (queryPt.max));
+        cursor = cursor.filter (R.row (queryPt.key).le (queryPt.max));
       }
     }
 
     // Return the fully constructed cursor
     return cursor;
+  }
+
+  /**
+   * Parsed DB-stored data into safe Model instance data components
+   */
+  _handleRawModel(rawModelObject) {
+    // If no Model instance data found, return null
+    if (rawModelObject == null) {
+      return null;
+    }
+
+    const modelId = rawModelObject.id
+
+    rawModelObject.id = rawModelObject._id
+
+    // Return correctly structured fetched Model instance data
+    return {
+      id     : modelId,
+      object : rawModelObject,
+    }
   }
 
   /**
@@ -161,16 +181,7 @@ class RethinkPlug {
     // Fetch single Model instance data by provided ID
     const rawModelRes = await this._fetchDoc (table.get (id));
 
-    // If no Model instance data found, return null
-    if (rawModelRes == null) {
-      return null;
-    }
-
-    // Return correctly structured fetched Model instance data
-    return {
-      id     : rawModelRes.id,
-      object : rawModelRes.data,
-    }
+    return this._handleRawModel (rawModelRes);
   }
 
   /**
@@ -185,11 +196,7 @@ class RethinkPlug {
 
     // Fetch, map, and return found Model instance data found by cursor constructed from provided query
     return (await this._fetchDocs (this._queryToCursor (table, query))).map ((rawModelRes) => {
-      // Return correctly structured fetched Model instance data
-      return {
-        id     : rawModelRes.id,
-        object : rawModelRes.data,
-      }
+      return this._handleRawModel (rawModelRes);
     });
   }
 
@@ -206,16 +213,7 @@ class RethinkPlug {
     // Construct cursor from provided query, and use it to fetch single Model instance data
     const rawModelRes = await this._fetchDoc (this._queryToCursor (table, query));
 
-    // If no Model instance data found, return null
-    if (rawModelRes == null) {
-      return null;
-    }
-
-    // Return correctly structured fetched Model instance data
-    return {
-      id     : rawModelRes.id,
-      object : rawModelRes.data,
-    }
+    return this._handleRawModel (rawModelRes);
   }
 
   /**
@@ -295,6 +293,11 @@ class RethinkPlug {
 
     // Get table by provided collection ID
     const table = await this._getTable (collectionId);
+
+    if (object.hasOwnProperty("id")) {
+      object._id = object.id
+      delete object.id
+    }
 
     // Insert Model instance data into database and get inserted ID
     const id = this._insert (table, object);
