@@ -136,6 +136,14 @@ class DbModel {
   }
 
   /**
+   * Refresh this Model instance's internal data by re-fetching from the database
+   */
+   async refresh () {
+     // Replace this Model instance's internal data with fetched data from the database
+     this._data = await this._$_db.findModelDataById (this._Model, this._id)
+   }
+
+  /**
    * Create database query builder from self and associated DB API
    */
   static _query () {
