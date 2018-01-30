@@ -157,9 +157,11 @@ class RethinkPlug {
       return null;
     }
 
-    const modelId = rawModelObject.id
+    // Extract Model ID from raw data
+    const modelId = rawModelObject.id;
 
-    rawModelObject.id = rawModelObject._id
+    // Set ID in data to be underscored ID containing user-defined ID
+    rawModelObject.id = rawModelObject._id;
 
     // Return correctly structured fetched Model instance data
     return {
@@ -181,6 +183,7 @@ class RethinkPlug {
     // Fetch single Model instance data by provided ID
     const rawModelRes = await this._fetchDoc (table.get (id));
 
+    // Parse raw model data to model data and return
     return this._handleRawModel (rawModelRes);
   }
 
@@ -196,6 +199,7 @@ class RethinkPlug {
 
     // Fetch, map, and return found Model instance data found by cursor constructed from provided query
     return (await this._fetchDocs (this._queryToCursor (table, query))).map ((rawModelRes) => {
+      // Parse raw model data to model data
       return this._handleRawModel (rawModelRes);
     });
   }
@@ -213,6 +217,7 @@ class RethinkPlug {
     // Construct cursor from provided query, and use it to fetch single Model instance data
     const rawModelRes = await this._fetchDoc (this._queryToCursor (table, query));
 
+    // Parse raw model data to model data and return
     return this._handleRawModel (rawModelRes);
   }
 
@@ -225,6 +230,7 @@ class RethinkPlug {
 
     // Get table by provided collection ID
     const table = await this._getTable (collectionId);
+
     // Construct cursor from provided query, and use it to fetch count of matching Model instance data
     return await this._count (this._queryToCursor (table, query));
   }
@@ -238,6 +244,7 @@ class RethinkPlug {
 
     // Get table by provided collection ID
     const table = await this._getTable (collectionId);
+
     // Find and remove single Model instance data by provided ID
     await this._remove (table.get (id));
   }
@@ -294,8 +301,11 @@ class RethinkPlug {
     // Get table by provided collection ID
     const table = await this._getTable (collectionId);
 
+    // Special handling for if Model data has `id` property
     if (object.hasOwnProperty("id")) {
+      // Store `id` value in an underscored ID prop
       object._id = object.id
+      // Delete `id` from object so not to override RethinkDb-generated ID
       delete object.id
     }
 
