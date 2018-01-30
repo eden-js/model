@@ -19,9 +19,6 @@ class DbModel {
 
     // Set internal ID from provided argument
     this.__id = id;
-
-    // Set `_id` property of internal data to be own ID
-    this.__data._id = this.__id;
   }
 
   /**
@@ -30,7 +27,12 @@ class DbModel {
   get (key = '') {
     // Return full internal data if key not provided
     if (key.length === 0) {
-      return this.__data;
+      return Object.assign({}, this.__data);
+    }
+
+    // Return database ID of Model instance
+    if (key === "_id") {
+      return this.__id;
     }
 
     // Return stored value selected by dot-prop key
@@ -113,7 +115,6 @@ class DbModel {
 
     if (id != null) {
       this.__id = id;
-      this.__data._id = this.__id;
     }
   }
 
@@ -160,7 +161,7 @@ class DbModel {
    * Find model by ID
    */
   static async findById (id) {
-    return await this.__db.findModelById (this.constructor, id);
+    return await this.__db.findModelById (this, id);
   }
 
   /**

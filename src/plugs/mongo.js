@@ -82,7 +82,7 @@ class MongoPlug {
     const mQuery = MQuery (this._db.collection (collectionId));
 
     // Find single Model instance data by provided ID
-    const rawModelRes = await mQuery.findOne ({ _id: id }).exec ();
+    const rawModelRes = await mQuery.findOne ({ _id: ObjectId(id) }).exec ();
 
     // If no Model instance data found, return null
     if (rawModelRes == null) {
@@ -90,7 +90,7 @@ class MongoPlug {
     }
 
     // Get internal ID from returned data
-    const fetchedModelId = rawModelRes._id;
+    const fetchedModelId = rawModelRes._id.toString();
 
     // Delete internal ID from the object
     delete rawModelRes._id;
@@ -118,7 +118,7 @@ class MongoPlug {
     // Fetch, map, and return found Model instance data found by cursor constructed from provided query
     return (await this._queryToCursor (mQuery, query).find ().exec ()).map ((rawModelRes) => {
       // Get internal ID from returned data
-      const fetchedModelId = rawModelRes._id;
+      const fetchedModelId = rawModelRes._id.toString();
 
       // Delete internal ID from the object
       delete rawModelRes._id;
@@ -153,7 +153,7 @@ class MongoPlug {
     }
 
     // Get internal ID from returned data
-    const fetchedModelId = rawModelRes._id;
+    const fetchedModelId = rawModelRes._id.toString();
 
     // Delete internal ID from the object
     delete rawModelRes._id;
@@ -249,7 +249,7 @@ class MongoPlug {
     const collection = this._db.collection (collectionId);
 
     // Insert Model instance data into database and get inserted ID
-    const id = (await collection.insertOne (object)).insertedId;
+    const id = (await collection.insertOne (object)).insertedId.toString();
 
     // Return ID of Model instance data in database
     return id;

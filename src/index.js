@@ -76,7 +76,7 @@ class DbApi {
     }
 
     // Return Model instance constructed from fetched data
-    return new Model (foundValue, id);
+    return new Model (foundValue.object, id);
   }
 
   /**
@@ -90,7 +90,7 @@ class DbApi {
     const foundValue = await this._plug.findById (collectionId, id);
 
     // Return found instance data
-    return foundValue;
+    return foundValue.object;
   }
 
   /**
