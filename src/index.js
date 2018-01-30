@@ -80,6 +80,20 @@ class DbApi {
   }
 
   /**
+   * Find a stored Model instance data by Model and an ID
+   */
+  async findModelDataById (Model, id) {
+    // Get collection ID of provided Model
+    const collectionId = modelCollectionId (Model);
+
+    // Find single Model instance data matching provided ID
+    const foundValue = await this._plug.findById (collectionId, id);
+
+    // Return found instance data
+    return foundValue;
+  }
+
+  /**
    * Find stored Model instances by Model and provided internal query
    */
   async findModels (Model, query) {
