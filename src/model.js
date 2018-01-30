@@ -156,11 +156,11 @@ class DbModel {
   // Find Model instances by simple filter
   static async find (filter = {}) { return await this._query ().where (filter).find () }
   // Find single Model instance by simple filter
-  static async findOne (filter = {}) { return this._query ().where (filter).findOne () }
+  static async findOne (filter = {}) { return await this._query ().where (filter).findOne () }
   // Count stored Model instances by simple filter
-  static async count (filter = {}) { return this._query ().where (filter).count () }
+  static async count (filter = {}) { return await this._query ().where (filter).count () }
   // Remove stored Model instance by simple filter
-  static async remove (filter = {}) { return this._query ().where (filter).remove () }
+  static async remove (filter = {}) { return await this._query ().where (filter).remove () }
 
   /**
    * Query constructor methods
