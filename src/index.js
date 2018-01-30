@@ -55,7 +55,7 @@ class DbApi {
       return await this._plug.insert (collectionId, model.get ());
     } else {
       // Update stored Model instance data using existing associated ID and return null
-      await this._plug.replaceById (collectionId, model.id, model.get ());
+      await this._plug.replaceById (collectionId, model.get ("_id"), model.get ());
       return null;
     }
   }
