@@ -139,8 +139,13 @@ class DbModel {
    * Refresh this Model instance's internal data by re-fetching from the database
    */
    async refresh () {
+     // Throw error if this Model instance is not stored in the database
+     if (this.__id == null) {
+       throw new Error ("Model not stored in database");
+     }
+
      // Replace this Model instance's internal data with fetched data from the database
-     this.__data = await this.constructor.__db.findModelDataById (this._Model, this.__id)
+     this.__data = await this.constructor.__db.findModelDataById (this.constructor, this.__id)
    }
 
   /**
@@ -155,7 +160,7 @@ class DbModel {
    * Find model by ID
    */
   static async findById (id) {
-    return await this.__db.findModelById (this._Model, id);
+    return await this.__db.findModelById (this.constructor, id);
   }
 
   /**
