@@ -13,7 +13,7 @@ class DbModel {
   /**
    * Construct Model class
    */
-  constructor (data, id = null) {
+  constructor (data = {}, id = null) {
     // Set internal data from provided argument
     this.__data = data;
 
