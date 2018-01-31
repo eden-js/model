@@ -246,7 +246,7 @@ class RethinkPlug {
   /**
    * Parsed DB-stored data into safe Model instance data components
    */
-  _handleRawModel(rawModelObject) {
+  _handleRawModel (rawModelObject) {
     // If no Model instance data found, return null
     if (rawModelObject == null) {
       return null;
@@ -276,8 +276,8 @@ class RethinkPlug {
     // Get table by provided collection ID
     const table = await this._getTable (collectionId);
 
-    // Fetch single Model instance data by provided ID
-    const rawModelRes = await this._fetchDoc (table.get (id), true);
+    // get doc
+    const rawModelRes = await table.get (id).run (this._rethinkConn);
 
     // Parse raw model data to model data and return
     return this._handleRawModel (rawModelRes);
