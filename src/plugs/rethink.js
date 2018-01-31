@@ -49,13 +49,13 @@ class RethinkPlug {
     this.getRawDb     = this.getRawDb.bind (this);
 
     // Bind internal methods to self
-    this._queryToCursor = this._queryToCursor.bind (this);
-    this._getTable      = this._getTable.bind (this);
-    this._fetchDocs     = this._fetchDocs.bind (this);
-    this._fetchDoc      = this._fetchDoc.bind (this);
-    this._count         = this._count.bind (this);
-    this._remove        = this._remove.bind (this);
-    this._insert        = this._insert.bind (this);
+    this._queryToCursor  = this._queryToCursor.bind (this);
+    this._getTable       = this._getTable.bind (this);
+    this._fetchDocs      = this._fetchDocs.bind (this);
+    this._fetchDoc       = this._fetchDoc.bind (this);
+    this._count          = this._count.bind (this);
+    this._remove         = this._remove.bind (this);
+    this._insert         = this._insert.bind (this);
     this._handleRawModel = this._handleRawModel.bind (this);
 
     // Bind public methods to self
