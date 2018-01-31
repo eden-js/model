@@ -49,7 +49,7 @@ class MongoPlug {
     this._client = await p (MongoClient).connect (this._config.url);
 
     // Internally store db by name provided in config
-    this._db = this._client.db (this._config.dbName);
+    this._db = this._client.db (this._config.db);
   }
 
   /**
