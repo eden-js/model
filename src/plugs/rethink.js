@@ -87,6 +87,9 @@ class RethinkPlug {
    * Prepare database for new collection of provided collection ID
    */
   async initCollection (collectionId) {
+    // If this collection has already been initiated, ignore
+    if (this._preparedTables.has (collectionId)) return;
+
     await this._building;
 
     // Add promise that resolves when table created to prepared tables promise map
