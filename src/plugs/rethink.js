@@ -77,10 +77,7 @@ class RethinkPlug {
    */
   async _build () {
     // Await connecting to rethinkdb, and internally store client connection
-    this._rethinkConn = await R.connect ({ host: this._config.host, port: this._config.port });
-
-    // Use db by name provided in config
-    this._rethinkConn.use (this._config.dbName);
+    this._rethinkConn = await R.connect ({ this._config });
   }
 
   /**
