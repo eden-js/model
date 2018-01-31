@@ -34,6 +34,9 @@ class RethinkPlug {
    * Construct RethinkDb database plug class
    */
   constructor (config) {
+    // Store map of promises that resolve when table is ready
+    this._preparedTables = new Map ();
+
     // Store config
     this._config = config;
 
@@ -69,24 +72,6 @@ class RethinkPlug {
     this._building = this._build ();
   }
 
-  async getRawCursor (tableName) {
-    await this._building;
-
-    return await this._getTable (tableName);
-  }
-
-  async getRawTable (tableName) {
-    await this._building;
-
-    return await this._getTable (tableName);
-  }
-
-  async getRawDb (tableName) {
-    await this._building;
-
-    return this._rethinkConn;
-  }
-
   /**
    * Async method that resolves on internal API build completion
    */
@@ -99,17 +84,52 @@ class RethinkPlug {
   }
 
   /**
+   * Prepare database for new collection of provided collection ID
+   */
+  async initCollection (collectionId) {
+    await this._building;
+
+    // Add promise that resolves when table created to prepared tables promise map
+    this._preparedTables.set(collectionId, (async () => {
+      try {
+        await R.tableCreate (collectionId).run (this._rethinkConn)
+      } catch (err) {
+        // ...Ignore
+      }
+    }) ());
+  }
+
+  /**
+  * Return a copy of a raw cursor by provided tableName
+  */
+  async getRawCursor (tableName) {
+    await this._building;
+
+    return await this._getTable (tableName);
+  }
+
+  /**
+  * Return a copy of a raw table by provided table name
+  */
+  async getRawTable (tableName) {
+    await this._building;
+
+    return await this._getTable (tableName);
+  }
+
+  /**
+  * Return a copy of the raw internal database
+  */
+  async getRawDb (tableName) {
+    await this._building;
+    return this._rethinkConn;
+  }
+
+  /**
    * Get a table by provided table name, ensuring table exists
    */
   async _getTable (tableName) {
-    // TODO: Cache known existing tables
-
-    // Attempt to create the table to ensure it exists
-    try {
-      await R.tableCreate (tableName).run (this._rethinkConn);
-    } catch (err) {
-      // Ignore all errors, since this just means it already exists
-    }
+    await this._preparedTables.get (tableName);
 
     // Return table by name
     return R.table (tableName);

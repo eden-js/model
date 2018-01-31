@@ -193,6 +193,17 @@ class DbApi {
     // Remove Model instances matching provided query
     await this._plug.removeById (collectionId, query);
   }
+
+  /**
+   * Tell a database plug to prepare database for a new Model
+   */
+  async initCollection (Model) {
+    // Get collection ID of provided Model
+    const collectionId = modelCollectionId (Model);
+
+    // Tell plug to prepare for new collection
+    this._plug.initCollection (collectionId);
+  }
 }
 
 /**
@@ -216,6 +227,9 @@ class Db {
   register (Model) {
     // Set internal DB class for the Model to be previously constructed internal DB API class
     Model.__db = this._dbApi;
+
+    // Tell dbg to prepare for new collection
+    this._dbApi.initCollection (Model);
   }
 }
 
