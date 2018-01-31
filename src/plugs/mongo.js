@@ -225,20 +225,6 @@ class MongoPlug {
   }
 
   /**
-   * Replace matching Model data from database by collection ID, Model ID, and constructed query
-   */
-  async replace (collectionId, query, newObject) {
-    // Wait for building to finish
-    await this._building;
-
-    // Construct MQuery cursor from collection ID
-    const mQuery = MQuery (this._db.collection (collectionId));
-
-    // Construct cursor from provided query and update matching Model instance data with provided replacement object
-    await this._queryToCursor (mQuery, query).update ().setOptions ({ overwrite: true, multi: true }).exec ();
-  }
-
-  /**
    * Insert Model data from database by collection ID and return Model ID
    */
   async insert (collectionId, object) {

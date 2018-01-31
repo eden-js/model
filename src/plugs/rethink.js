@@ -4,6 +4,29 @@
 const R = require ('rethinkdb');
 
 /**
+ * Swap two keys in an object around
+ */
+function swapKeys (key1, key2, obj) {
+  // Create new copy of object so not to modify by reference
+  const swappedObj = Object.assign ({}, obj);
+
+  // Get references to existing values
+  const val1 = swappedObj.hasOwnProperty (key1) ? swappedObj[key1] : null;
+  const val2 = swappedObj.hasOwnProperty (key2) ? swappedObj[key2] : null;
+
+  // Delete being-swapped values from the object
+  delete swappedObj[key1];
+  delete swappedObj[key2];
+
+  // Re-apply the found references
+  if (val1 != null) swappedObj[key2] = val1;
+  if (val2 != null) swappedObj[key1] = val2;
+
+  // Return the updated object
+  return swappedObj;
+}
+
+/**
  * RethinkDb database plug class
  */
 class RethinkPlug {
@@ -93,9 +116,15 @@ class RethinkPlug {
   /**
    * Replace docs by provided cursor and replacement object
    */
-  async _replace (cursor, newObject) {
+  async _replace (table, newObject, id) {
+    // Create a copy of the provided object to avoid modifying original by reference
+    const insertObject = Object.assign ({}, newObject);
+
+    // Set `id` of the data to be the Model instance's db data ID
+    insertObject.id = id;
+
     // Execute replace query using provided cursor and provided replacement object
-    return await cursor.replace (newObject).run (this._rethinkConn);
+    await table.get (id).replace (insertObject).run (this._rethinkConn);
   }
 
   /**
@@ -157,16 +186,17 @@ class RethinkPlug {
       return null;
     }
 
-    // Extract Model ID from raw data
-    const modelId = rawModelObject.id;
+    // Swap `id` and `_id` around for compatibility without possibly conflicting props
+    const object = swapKeys ("id", "_id", rawModelObject);
 
-    // Set ID in data to be underscored ID containing user-defined ID
-    rawModelObject.id = rawModelObject._id;
+    // Extract Model ID from raw data
+    const modelId = object._id;
+    delete object._id
 
     // Return correctly structured fetched Model instance data
     return {
       id     : modelId,
-      object : rawModelObject,
+      object : object,
     }
   }
 
@@ -274,21 +304,7 @@ class RethinkPlug {
     const table = await this._getTable (collectionId);
 
     // Find and update Model instance data by provided ID and replacement object
-    await this._replace (table.get (id), newObject);
-  }
-
-  /**
-   * Replace matching Model data from database by collection ID, Model ID, and constructed query
-   */
-  async replace (collectionId, query, newObject) {
-    // Wait for building to finish
-    await this._building;
-
-    // Get table by provided collection ID
-    const table = await this._getTable (collectionId);
-
-    // Construct cursor from provided query and update matching Model instance data with provided replacement object
-    await this._replace (this._queryToCursor (table, query), newObject);
+    await this._replace (table, swapKeys ("id", "_id", newObject), id);
   }
 
   /**
@@ -301,16 +317,8 @@ class RethinkPlug {
     // Get table by provided collection ID
     const table = await this._getTable (collectionId);
 
-    // Special handling for if Model data has `id` property
-    if (object.hasOwnProperty("id")) {
-      // Store `id` value in an underscored ID prop
-      object._id = object.id
-      // Delete `id` from object so not to override RethinkDb-generated ID
-      delete object.id
-    }
-
     // Insert Model instance data into database and get inserted ID
-    const id = this._insert (table, object);
+    const id = this._insert (table, swapKeys ("id", "_id", object));
 
     // Return ID of Model instance data in database
     return id;
