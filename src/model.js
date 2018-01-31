@@ -19,6 +19,16 @@ class DbModel {
 
     // Set internal ID from provided argument
     this.__id = id;
+
+    // Bind public methods to self
+    this.get        = this.get.bind (this);
+    this.set       = this.set.bind (this);
+    this.unset     = this.unset.bind (this);
+    this.increment = this.increment.bind (this);
+    this.decrement = this.decrement.bind (this);
+    this.save      = this.save.bind (this);
+    this.remove    = this.remove.bind (this);
+    this.refresh   = this.refresh.bind (this);
   }
 
   /**

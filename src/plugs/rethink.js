@@ -37,6 +37,34 @@ class RethinkPlug {
     // Store config
     this._config = config;
 
+    // Bind builder to self
+    this._build = this._build.bind (this);
+
+    // Bind raw methods to self
+    this.getRawCursor = this.getRawCursor.bind (this);
+    this.getRawTable  = this.getRawTable.bind (this);
+    this.getRawDb     = this.getRawDb.bind (this);
+
+    // Bind internal methods to self
+    this._queryToCursor = this._queryToCursor.bind (this);
+    this._getTable      = this._getTable.bind (this);
+    this._fetchDocs     = this._fetchDocs.bind (this);
+    this._fetchDoc      = this._fetchDoc.bind (this);
+    this._count         = this._count.bind (this);
+    this._remove        = this._remove.bind (this);
+    this._insert        = this._insert.bind (this);
+    this._handleRawModel = this._handleRawModel.bind (this);
+
+    // Bind public methods to self
+    this.findById    = this.findById.bind (this);
+    this.find        = this.find.bind (this);
+    this.findOne     = this.findOne.bind (this);
+    this.count       = this.count.bind (this);
+    this.removeById  = this.removeById.bind (this);
+    this.remove      = this.remove.bind (this);
+    this.replaceById = this.replaceById.bind (this);
+    this.insert      = this.insert.bind (this);
+
     // Start building internal connections and store promise
     this._building = this._build ();
   }

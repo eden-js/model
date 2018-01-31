@@ -16,6 +16,22 @@ class DbQuery {
 
     // Query parts
     this.pts = [];
+
+    // Bind all public building methods to self
+    this.limit = this.limit.bind (this);
+    this.skip = this.skip.bind (this);
+    this.sort = this.sort.bind (this);
+    this.where = this.where.bind (this);
+    this.gt = this.gt.bind (this);
+    this.lt = this.lt.bind (this);
+    this.gte = this.gte.bind (this);
+    this.lte = this.lte.bind (this);
+
+    // Bind all public finalization methods to self
+    this.find    = this.find.bind (this);
+    this.findOne = this.findOne.bind (this);
+    this.count   = this.count.bind (this);
+    this.remove  = this.count.bind (this);
   }
 
   /**
