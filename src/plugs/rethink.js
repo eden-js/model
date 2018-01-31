@@ -90,7 +90,7 @@ class RethinkPlug {
     await this._building;
 
     // Add promise that resolves when table created to prepared tables promise map
-    this._preparedTables.set(collectionId, (async () => {
+    this._preparedTables.set (collectionId, (async () => {
       try {
         await R.tableCreate (collectionId).run (this._rethinkConn)
       } catch (err) {
