@@ -152,9 +152,9 @@ class RethinkPlug {
   /**
    * Fetch single doc by provided cursor
    */
-  async _fetchDoc (cursor, withoutLimit) {
+  async _fetchDoc (cursor) {
     // Limit cursor to 1 and get doc cursor from executing provided cursor
-    const docCursor = withoutLimit ? await cursor.run (this._rethinkConn) : await cursor.limit (1).run (this._rethinkConn);
+    const docCursor = await cursor.limit (1).run (this._rethinkConn);
 
     // Convert doc cursor to array of docs
     const docs = await docCursor.toArray ();
@@ -275,10 +275,6 @@ class RethinkPlug {
 
     // Get table by provided collection ID
     const table = await this._getTable (collectionId);
-
-    console.log (table);
-    console.log ('getting ', id);
-    console.log ('collection', collectionId);
 
     // get doc
     const rawModelRes = await table.get (id).run (this._rethinkConn);
