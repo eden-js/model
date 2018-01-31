@@ -269,20 +269,11 @@ class RethinkPlug {
   /**
    * Find Model data by collection ID and Model ID
    */
-  async findById (collectionId, id) {
-    // Wait for building to finish
-    await this._building;
-
-    // Get table by provided collection ID
-    const table = await this._getTable (collectionId);
-
-    // get doc
-    const rawModelRes = await table.get (id).run (this._rethinkConn);
-
-    console.log (rawModelRes);
-
-    // Parse raw model data to model data and return
-    return this._handleRawModel (rawModelRes);
+  findById (collectionId, id) {
+    // return findOne
+    return this.findOne (collectionId, {
+      'id' : id
+    });
   }
 
   /**
