@@ -279,6 +279,8 @@ class RethinkPlug {
     // get doc
     const rawModelRes = await table.get (id).run (this._rethinkConn);
 
+    console.log (rawModelRes);
+
     // Parse raw model data to model data and return
     return this._handleRawModel (rawModelRes);
   }

@@ -34,18 +34,20 @@ class DbModel {
   /**
    * Model prop of methods for getting raw plug-specific components
    */
-  static get raw() {
+  static get raw () {
+    // return raw
     return {
-      cursor: async (...args) => await this.__db.getRawCursor (...args),
-      table: async (...args) => await this.__db.getRawTable (...args),
-      db: async (...args) => await this.__db.getRawDb (...args),
+      'db'     : async (...args) => await this.__db.getRawDb (...args),
+      'table'  : async (...args) => await this.__db.getRawTable (...args),
+      'cursor' : async (...args) => await this.__db.getRawCursor (...args),
     };
   }
 
   /**
    * Model instance prop of methods for getting raw plug-specific components
    */
-  get raw() {
+  get raw () {
+    // return raw constructor
     return this.constructor.raw;
   }
 
