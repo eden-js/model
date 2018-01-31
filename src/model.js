@@ -22,6 +22,24 @@ class DbModel {
   }
 
   /**
+   * Model prop of methods for getting raw plug-specific components
+   */
+  static get raw() {
+    return {
+      cursor: async (...args) => await this.__db.getRawCursor (...args),
+      table: async (...args) => await this.__db.getRawTable (...args),
+      db: async (...args) => await this.__db.getRawDb (...args),
+    };
+  }
+
+  /**
+   * Model instance prop of methods for getting raw plug-specific components
+   */
+  get raw() {
+    return this.constructor.raw;
+  }
+
+  /**
    * Get internal data by dot-prop key
    */
   get (key = '') {

@@ -32,7 +32,7 @@ class DbApi {
   constructor (dbPlug) {
     this._plug = dbPlug;
 
-    // Bind methods to self
+    // Bind API methods to self
     this.saveModel       = this.saveModel.bind (this);
     this.findModelById   = this.findModelById.bind (this);
     this.findModels      = this.findModels.bind (this);
@@ -40,6 +40,32 @@ class DbApi {
     this.countModels     = this.countModels.bind (this);
     this.removeModelById = this.removeModelById.bind (this);
     this.removeModels    = this.removeModels.bind (this);
+
+    // Bind raw methods to self
+    this.getRawCursor = this.getRawCursor.bind (this);
+    this.getRawTable  = this.getRawTable.bind (this);
+    this.getRawDb     = this.getRawDb.bind (this);
+  }
+
+  /**
+   * Get a plug-specific raw cursor
+   */
+  async getRawCursor (...args) {
+    return this._plug.getRawCursor (...args);
+  }
+
+  /**
+   * Get a plug-specific raw table
+   */
+  async getRawTable (...args) {
+    return this._plug.getRawTable (...args);
+  }
+
+  /**
+   * Get a plug-specific raw DB
+   */
+  async getRawDb (...args) {
+    return this._plug.getRawDb (...args);
   }
 
   /**

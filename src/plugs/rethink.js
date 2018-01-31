@@ -41,6 +41,24 @@ class RethinkPlug {
     this._building = this._build ();
   }
 
+  async getRawCursor (tableName) {
+    await this._building;
+
+    return await this._getTable (tableName);
+  }
+
+  async getRawTable (tableName) {
+    await this._building;
+
+    return await this._getTable (tableName);
+  }
+
+  async getRawDb (tableName) {
+    await this._building;
+
+    return this._rethinkConn;
+  }
+
   /**
    * Async method that resolves on internal API build completion
    */

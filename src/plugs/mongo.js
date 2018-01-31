@@ -21,6 +21,30 @@ class MongoPlug {
   }
 
   /**
+   * Return a copy of a raw cursor by provided collectionId
+   */
+  async getRawCursor (collectionId) {
+    await this._building;
+    return MQuery (this._db.collection (collectionId));
+  }
+
+  /**
+   * Return a copy of a raw table by provided collectionId
+   */
+  async getRawTable (collectionId) {
+    await this._building;
+    return this._db.collection (collectionId);
+  }
+
+  /**
+   * Return a copy of the raw internal database
+   */
+  async getRawDb () {
+    await this._building;
+    return this._db;
+  }
+
+  /**
    * Async method that resolves on internal API build completion
    */
   async _build () {
