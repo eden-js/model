@@ -224,12 +224,12 @@ class Db {
   /**
    * Register a Model class with this database
    */
-  register (Model) {
+  async register (Model) {
     // Set internal DB class for the Model to be previously constructed internal DB API class
     Model.__db = this._dbApi;
 
     // Tell dbg to prepare for new collection
-    this._dbApi.initCollection (Model);
+    await this._dbApi.initCollection (Model);
   }
 }
 
