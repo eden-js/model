@@ -172,6 +172,14 @@ class RethinkPlug {
   }
 
   /**
+   * Sum by provided cursor and field key
+   */
+  async _sum (cursor, key) {
+    // Return executed count query using provided cursor
+    return await cursor.sum (key).run (this._rethinkConn);
+  }
+
+  /**
    * Remove docs by provided cursor
    */
   async _remove (cursor) {
@@ -329,6 +337,17 @@ class RethinkPlug {
 
     // Construct cursor from provided query, and use it to fetch count of matching Model instance data
     return await this._count (this._queryToCursor (table, query));
+  }
+
+  /**
+   * Get count of Model data by collection ID, constructed query, and field key
+   */
+  async sum (collectionId, query, key) {
+    // Get table by provided collection ID
+    const table = await this._getTable (collectionId);
+
+    // Construct cursor from provided query, and use it to fetch sum of matching Model instance data's matching fields
+    return await this._sum (this._queryToCursor (table, query), key)
   }
 
   /**
