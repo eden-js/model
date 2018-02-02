@@ -340,7 +340,7 @@ class RethinkPlug {
   }
 
   /**
-   * Get count of Model data by collection ID, constructed query, and field key
+   * Get sum of data by provided key of all matching Model data by collection ID and constructed query
    */
   async sum (collectionId, query, key) {
     // Get table by provided collection ID

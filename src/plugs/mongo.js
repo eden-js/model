@@ -235,6 +235,20 @@ class MongoPlug {
   }
 
   /**
+   * Get sum of data by provided key of all matching Model data by collection ID and constructed query
+   */
+  async sum (collectionId, query, key) {
+    // Wait for building to finish
+    await this._building;
+
+    // Construct MQuery cursor from collection ID
+    const mQuery = MQuery (this._db.collection (collectionId));
+
+    // Construct cursor from provided query, and use it to get sum of data by provided key of all matching Model data
+    return await this._queryToCursor (mQuery, query).sum (key).exec ();
+  }
+
+  /**
    * Remove matching Model data from database by collection ID and Model ID
    */
   async removeById (collectionId, id) {
