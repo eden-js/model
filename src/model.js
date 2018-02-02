@@ -141,7 +141,7 @@ class DbModel {
    */
   async save () {
     // Call internal DB API to save this Model instance
-    const id = await this.constructor.__db.saveModel (this, this.__id);
+    const id = await this.constructor.__db.save (this, this.__id);
 
     if (id != null) {
       this.__id = id;
@@ -163,7 +163,7 @@ class DbModel {
     this.__id = null;
 
     // Call internal DB API to remove the data associated with this Model instance by ID
-    await this.constructor.__db.removeModelById (this.constructor, this.__id);
+    await this.constructor.__db.removeById (this.constructor, this.__id);
   }
 
   /**
@@ -176,7 +176,7 @@ class DbModel {
      }
 
      // Replace this Model instance's internal data with fetched data from the database
-     this.__data = await this.constructor.__db.findModelDataById (this.constructor, this.__id)
+     this.__data = await this.constructor.__db.findDataById (this.constructor, this.__id)
    }
 
   /**
@@ -191,7 +191,7 @@ class DbModel {
    * Find model by ID
    */
   static async findById (id) {
-    return await this.__db.findModelById (this, id);
+    return await this.__db.findById (this, id);
   }
 
   /**

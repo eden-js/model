@@ -71,7 +71,7 @@ class DbApi {
   /**
    * Save a Model instance to database
    */
-  async saveModel (model, modelId = null) {
+  async save (model, modelId = null) {
     // Get collection ID of provided Model instance
     const collectionId = modelInstanceCollectionId (model);
 
@@ -89,7 +89,7 @@ class DbApi {
   /**
    * Find a stored Model instance by Model and an ID
    */
-  async findModelById (Model, id) {
+  async findById (Model, id) {
     // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
 
@@ -108,7 +108,7 @@ class DbApi {
   /**
    * Find a stored Model instance data by Model and an ID
    */
-  async findModelDataById (Model, id) {
+  async findDataById (Model, id) {
     // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
 
@@ -122,7 +122,7 @@ class DbApi {
   /**
    * Find stored Model instances by Model and provided internal query
    */
-  async findModels (Model, query) {
+  async find (Model, query) {
     // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
 
@@ -145,7 +145,7 @@ class DbApi {
   /**
    * Find a single stored Model instance by Model and provided internal query
    */
-  async findModel (Model, query) {
+  async findOne (Model, query) {
     // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
 
@@ -164,7 +164,7 @@ class DbApi {
   /**
    * Count stored Model instances by Model and provided internal query
    */
-  async countModels (Model, query) {
+  async count (Model, query) {
     // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
 
@@ -175,7 +175,7 @@ class DbApi {
   /**
    * Remove a stored Model instance by Model and an ID
    */
-  async removeModelById (Model, id) {
+  async removeById (Model, id) {
     // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
 
@@ -186,7 +186,7 @@ class DbApi {
   /**
    * Remove stored Model instances by Model and provided internal query
    */
-  async removeModels (Model, query) {
+  async remove (Model, query) {
     // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
 

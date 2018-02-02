@@ -138,7 +138,7 @@ class DbQuery {
    */
   async find () {
     // Call internally stored DB API to return models matching self query
-    return await this._db.findModels (this._Model, this);
+    return await this._db.find (this._Model, this);
   }
 
   /**
@@ -146,7 +146,7 @@ class DbQuery {
    */
   async findOne () {
     // Call internally stored DB API to return one model matching self query
-    return await this._db.findModel (this._Model, this);
+    return await this._db.findOne (this._Model, this);
   }
 
   /**
@@ -154,7 +154,7 @@ class DbQuery {
    */
   async count () {
     // Call internally stored DB API to return the amount of models matching self query
-    return await this._db.countModels (this._Model, this);
+    return await this._db.count (this._Model, this);
   }
 
   /**
@@ -162,7 +162,7 @@ class DbQuery {
    */
   async remove () {
     // Call internally stored DB API to remove all models matching self query
-    await this._db.removeModels (this._Model, this);
+    await this._db.remove (this._Model, this);
   }
 }
 
