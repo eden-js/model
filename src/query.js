@@ -158,6 +158,14 @@ class DbQuery {
   }
 
   /**
+   * Finalize this query and return the sum of matching Model instances' fields by provided key
+   */
+  async sum (key) {
+    // Call internally stored DB API to return the amount of models matching self query
+    return await this._db.sum (this._Model, this, key);
+  }
+
+  /**
    * Finalize this query and remove all matching Model instances
    */
   async remove () {

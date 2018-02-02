@@ -173,6 +173,17 @@ class DbApi {
   }
 
   /**
+   * Sum fields of all field values by Mode, provided internal query, and key
+   */
+  async sum (Model, query, key) {
+    // Get collection ID of provided Model
+    const collectionId = modelCollectionId (Model);
+
+    // Return sum of all values by provided key of Model instances matching provided query
+    return await this._plug.sum (collectionId, query, key);
+  }
+
+  /**
    * Remove a stored Model instance by Model and an ID
    */
   async removeById (Model, id) {

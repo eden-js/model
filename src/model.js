@@ -203,6 +203,8 @@ class DbModel {
   static async findOne (filter = {}) { return await this.__query ().where (filter).findOne () }
   // Count stored Model instances by simple filter
   static async count (filter = {}) { return await this.__query ().where (filter).count () }
+  // Sum stored Model instance values by simple filter
+  static async sum (key, filter = {}) { return await this.__query ().where (filter).sum () }
   // Remove stored Model instance by simple filter
   static async remove (filter = {}) { return await this.__query ().where (filter).remove () }
 
