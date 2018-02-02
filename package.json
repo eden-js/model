@@ -12,7 +12,7 @@
     "doasync": "^2.0.0",
     "dot-prop": "^4.2.0",
     "mongodb": "^3.0.1",
-    "mquery": "^3.0.0",
+    "mquery": "git+https://github.com/hexafluoride/mquery.git",
     "pluralize": "^7.0.0",
     "rethinkdb": "^2.3.3"
   }
