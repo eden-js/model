@@ -33,13 +33,13 @@ class DbApi {
     this._plug = dbPlug;
 
     // Bind API methods to self
-    this.saveModel       = this.saveModel.bind (this);
-    this.findModelById   = this.findModelById.bind (this);
-    this.findModels      = this.findModels.bind (this);
-    this.findModel       = this.findModel.bind (this);
-    this.countModels     = this.countModels.bind (this);
-    this.removeModelById = this.removeModelById.bind (this);
-    this.removeModels    = this.removeModels.bind (this);
+    this.save       = this.save.bind (this);
+    this.findById   = this.findById.bind (this);
+    this.find       = this.find.bind (this);
+    this.findOne    = this.findOne.bind (this);
+    this.count      = this.count.bind (this);
+    this.removeById = this.removeById.bind (this);
+    this.remove     = this.remove.bind (this);
 
     // Bind raw methods to self
     this.getRawCursor = this.getRawCursor.bind (this);
