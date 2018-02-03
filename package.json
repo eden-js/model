@@ -11,8 +11,8 @@
   "dependencies": {
     "doasync": "^2.0.0",
     "dot-prop": "^4.2.0",
+    "eden-mquery": "^3.0.0",
     "mongodb": "^3.0.2",
-    "mquery": "git+https://github.com/hexafluoride/mquery.git",
     "pluralize": "^7.0.0",
     "rethinkdb": "^2.3.3"
   }

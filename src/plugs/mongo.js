@@ -2,7 +2,7 @@
 
 // Require dependencies
 const { MongoClient, ObjectId } = require ('mongodb');
-const MQuery = require ('mquery');
+const MQuery = require ('eden-mquery');
 const p = require ('doasync');
 
 /**
