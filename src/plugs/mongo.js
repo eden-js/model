@@ -245,7 +245,7 @@ class MongoPlug {
     const mQuery = MQuery (this._db.collection (collectionId));
 
     // Construct cursor from provided query, and use it to get sum of data by provided key of all matching Model data
-    return await this._queryToCursor (mQuery, query).sum (key).exec ();
+    return await this._queryToCursor (mQuery, query).sum (`$${key}`).exec ();
   }
 
   /**
