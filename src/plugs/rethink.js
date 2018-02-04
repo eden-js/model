@@ -230,8 +230,8 @@ class RethinkPlug {
         for (const match of queryPt.matches) {
           let filterPart = null;
 
-          for (const [matchKey, matchVal] of Object.entries(match)) {
-            let filterPartMatch = R.row (matchKey).default(null).eq (matchVal);
+          for (const [matchKey, matchVal] of Object.entries (match)) {
+            let filterPartMatch = R.row (matchKey).default (null).eq (matchVal);
             if (filterPart != null) filterPartMatch = filterPartMatch.and (filterPartMatch);
             filterPart = filterPartMatch;
           }
