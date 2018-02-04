@@ -223,6 +223,26 @@ class RethinkPlug {
       } else if (queryPt.type === 'whereEquals') {
         // Apply constructed filter from key and value object to `filter` cursor method
         cursor = cursor.filter ({ [queryPt.match.prop]: queryPt.match.value });
+      } else if (queryPt.type === 'whereOr') {
+        // TODO: docs
+        let filter = null;
+
+        for (const match of queryPt.matches) {
+          let filterPart = null;
+
+          for (const [matchKey, matchVal] of Object.entries(match)) {
+            let filterPartMatch = R.row (matchKey).default(null).eq (matchVal);
+            if (filterPart != null) filterPartMatch = filterPartMatch.and (filterPartMatch);
+            filterPart = filterPartMatch;
+          }
+
+          if (filter != null) filterPart = filterPart.or (filter);
+          filter = filterPart;
+        }
+
+        if (filter != null) {
+          cursor = cursor.filter (filter);
+        }
       } else if (queryPt.type === 'limit') {
         // Apply amt to `limit` cursor method
         cursor = cursor.limit (queryPt.limitAmount);

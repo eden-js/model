@@ -98,6 +98,15 @@ class DbQuery {
   }
 
   /**
+   * Filter only Model instances where the specified key matches the specified val, can also be given a filter object
+   */
+  or (matches) {
+    // Push query part for `whereOr` and return self
+    this.pts.push ({ type: "whereOr", matches: matches });
+    return this;
+  }
+
+  /**
    * Only return Model instances where the value of the specified key is greater than the specified amount
    */
   gt (key, min) {

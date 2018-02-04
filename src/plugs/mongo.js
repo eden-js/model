@@ -95,6 +95,9 @@ class MongoPlug {
       } else if (queryPt.type === 'whereEquals') {
           // Apply constructed filter from key and value object to `where` cursor method
         cursor = cursor.where ({ [queryPt.match.prop]: queryPt.match.value });
+      } else if (queryPt.type === 'whereOr') {
+          // Apply supplied matches array to `or` cursor method
+        cursor = cursor.or (queryPt.matches);
       } else if (queryPt.type === 'limit') {
           // Apply amt to `limit` cursor method
         cursor = cursor.limit (queryPt.limitAmount);
