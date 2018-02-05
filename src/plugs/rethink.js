@@ -224,27 +224,40 @@ class RethinkPlug {
         // Apply constructed filter from key and value object to `filter` cursor method
         cursor = cursor.filter ({ [queryPt.match.prop]: queryPt.match.value });
       } else if (queryPt.type === 'whereOr') {
-        // TODO: docs
-        const filterParts = [];
+        // Array for storing filter parts
+        const orMatchFilters = [];
 
+        // Iterate query part possible match objects to make RethinkDB ready filters
         for (const match of queryPt.matches) {
+          // Variable for storing RethinkDB ready filter
           let filterPart = null;
 
+          // Iterate all properties of provided object
           for (const [matchKey, matchVal] of Object.entries (match)) {
+            // Create RethinkDB match for specific row in object
             let filterPartMatch = R.row (matchKey).default (null).eq (matchVal);
-            if (filterPart != null) filterPartMatch = filterPartMatch.and (filterPartMatch);
-            filterPart = filterPartMatch;
+
+            // If existing filter data, append this as clause, otherwise set this as filter data
+            if (filterPart != null) {
+              filterPart = filterPartMatch.and (filterPart);
+            } else {
+              filterPart = filterPartMatch;
+            }
           }
 
-          filterParts.push(filterPart)
+          // Push new RethinkDB ready filter
+          orMatchFilters.push (filterPart);
         }
 
-        if (filterParts.length === 0) {
+        if (orMatchFilters.length === 0) {
+          // If no filters, give blank object
           cursor = cursor.filter ({});
-        } else if (filterParts.length === 1) {
-          cursor = cursor.filter (filterParts[0]);
-        } else if (filterParts.length > 2) {
-          cursor = cursor.filter (R.or(...filterParts));
+        } else if (orMatchFilters.length === 1) {
+          // If 1 filter, provide as only filter
+          cursor = cursor.filter (orMatchFilters[0]);
+        } else if (orMatchFilters.length > 1) {
+          // If 2 or more filters, use all as `or` arguments to use in filter
+          cursor = cursor.filter (R.or(...orMatchFilters));
         }
       } else if (queryPt.type === 'limit') {
         // Apply amt to `limit` cursor method
