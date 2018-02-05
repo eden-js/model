@@ -136,7 +136,7 @@ class DbQuery {
   /**
    * Only return model instances where the value of the specified key is less than or equal to the specified amount
    */
-  lte (key, min) {
+  lte (key, max) {
     // Push query part for `lte` and return self
     this.pts.push ({ type: "lte", max: max, key: key });
     return this;
