@@ -225,7 +225,7 @@ class RethinkPlug {
         cursor = cursor.filter ({ [queryPt.match.prop]: queryPt.match.value });
       } else if (queryPt.type === 'whereOr') {
         // TODO: docs
-        let filter = null;
+        const filterParts = [];
 
         for (const match of queryPt.matches) {
           let filterPart = null;
@@ -236,12 +236,15 @@ class RethinkPlug {
             filterPart = filterPartMatch;
           }
 
-          if (filter != null) filterPart = filterPart.or (filter);
-          filter = filterPart;
+          filterParts.push(filterPart)
         }
 
-        if (filter != null) {
-          cursor = cursor.filter (filter);
+        if (filterParts.length === 0) {
+          cursor = cursor.filter ({});
+        } else if (filterParts.length === 1) {
+          cursor = cursor.filter (filterParts[0]);
+        } else if (filterParts.length > 2) {
+          cursor = cursor.filter (R.or(...filterParts));
         }
       } else if (queryPt.type === 'limit') {
         // Apply amt to `limit` cursor method
