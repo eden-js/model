@@ -14,6 +14,7 @@
     "eden-mquery": "^3.0.0",
     "mongodb": "^3.0.2",
     "pluralize": "^7.0.0",
+    "re2": "^1.6.1",
     "rethinkdb": "^2.3.3"
   }
 }

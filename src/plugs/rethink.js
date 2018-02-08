@@ -1,7 +1,24 @@
 'use strict';
 
 // Require dependencies
-const R = require ('rethinkdb');
+const R   = require ('rethinkdb');
+const RE2 = require ('re2');
+
+/**
+ * Convert a RegExp object to a RethinkDB-compatible Regex string
+ */
+function regexToGoodString (re) {
+  // Create a string of the RegExp object from RE2
+	const baseStr = (new RE2 (re)).toString ();
+  // Match the base components of the Regex string
+	const baseStrMatch = baseStr.match (/\/(.*)\/(.*)/);
+
+  // Create a string that will be the appropriate format for flags
+	const flagStr = baseStrMatch[2].length > 0 ? `(?${baseStrMatch[2]})` : '';
+
+  // Return the reconstructed Regex string
+	return `${flagStr}${baseStrMatch[1]}`;
+}
 
 /**
  * Swap two keys in an object around
@@ -218,11 +235,23 @@ class RethinkPlug {
   _queryToCursor (cursor, query) {
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
+        // Iterate all values in the filter object
+        for (const [filterKey, filterVal] of Object.entries (queryPt.filter)) {
+          // If value data is a RegExp match, handle seperately
+          if (filterVal instanceof RegExp) {
+            // Delete by key from filter object
+            delete queryPt.filter[filterKey];
+
+            // Construct a compatible Regex string from the RegExp filter value
+            const regexString = regexToGoodString (filterVal).toString ();
+
+            // Add a custom filter method to the cursor
+            cursor = cursor.filter (R.row (filterKey).match (regexString));
+          }
+        }
+
         // Apply filter object to `filter` cursor method
         cursor = cursor.filter (queryPt.filter);
-      } else if (queryPt.type === 'whereEquals') {
-        // Apply constructed filter from key and value object to `filter` cursor method
-        cursor = cursor.filter ({ [queryPt.match.prop]: queryPt.match.value });
       } else if (queryPt.type === 'whereOr') {
         // Array for storing filter parts
         const orMatchFilters = [];
@@ -297,7 +326,7 @@ class RethinkPlug {
     }
 
     // Swap `id` and `_id` around for compatibility without possibly conflicting props
-    const object = swapKeys ("id", "_id", rawModelObject);
+    const object = swapKeys ('id', '_id', rawModelObject);
 
     // Extract Model ID from raw data
     const modelId = object._id;
@@ -425,7 +454,7 @@ class RethinkPlug {
     const table = await this._getTable (collectionId);
 
     // Find and update Model instance data by provided ID and replacement object
-    await this._replace (table, swapKeys ("id", "_id", newObject), id);
+    await this._replace (table, swapKeys ('id', '_id', newObject), id);
   }
 
   /**
@@ -439,7 +468,7 @@ class RethinkPlug {
     const table = await this._getTable (collectionId);
 
     // Insert Model instance data into database and get inserted ID
-    const id = this._insert (table, swapKeys ("id", "_id", object));
+    const id = this._insert (table, swapKeys ('id', '_id', object));
 
     // Return ID of Model instance data in database
     return id;

@@ -90,11 +90,19 @@ class MongoPlug {
     // Iterate over all parts of the query
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
+        // Iterate all values in the filter object
+        for (const [filterKey, filterVal] of Object.entries (queryPt.filter)) {
+          // If value data is a RegExp match, handle seperately
+          if (filterVal instanceof RegExp) {
+            // Delete by key from filter object
+            delete queryPt.filter[filterKey];
+            // Apply key and regex match to `where` and `regex` cursor method
+            cursor = cursor.where (filterKey).regex (filterVal);
+          }
+        }
+
         // Apply filter object to `where` cursor method
         cursor = cursor.where (queryPt.filter);
-      } else if (queryPt.type === 'whereEquals') {
-          // Apply constructed filter from key and value object to `where` cursor method
-        cursor = cursor.where ({ [queryPt.match.prop]: queryPt.match.value });
       } else if (queryPt.type === 'whereOr') {
           // Apply supplied matches array to `or` cursor method
         cursor = cursor.or (queryPt.matches);

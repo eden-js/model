@@ -92,8 +92,8 @@ class DbQuery {
       return this;
     }
 
-    // Push query part for `whereEquals` and return self
-    this.pts.push ({ type: "whereEquals", match: { prop: key, value: value } });
+    // Push query part for `filter` and return self
+    this.pts.push ({ type: "filter", filter: { [key]: value } });
     return this;
   }
 
