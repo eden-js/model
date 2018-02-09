@@ -159,11 +159,11 @@ class DbModel {
       throw new Error ('Model not stored in database');
     }
 
-    // Nullify internal ID as no longer exists in database
-    this.__id = null;
-
     // Call internal DB API to remove the data associated with this Model instance by ID
     await this.constructor.__db.removeById (this.constructor, this.__id);
+
+    // Nullify internal ID as no longer exists in database
+    this.__id = null;
   }
 
   /**

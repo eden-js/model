@@ -106,6 +106,9 @@ class MongoPlug {
       } else if (queryPt.type === 'whereOr') {
           // Apply supplied matches array to `or` cursor method
         cursor = cursor.or (queryPt.matches);
+      } else if (queryPt.type === 'whereAnd') {
+        // Apply supplied matches array to `and` cursor method
+        cursor = cursor.and (queryPt.matches);
       } else if (queryPt.type === 'limit') {
           // Apply amt to `limit` cursor method
         cursor = cursor.limit (queryPt.limitAmount);

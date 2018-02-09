@@ -18,20 +18,21 @@ class DbQuery {
     this.pts = [];
 
     // Bind all public building methods to self
+    this.gt    = this.gt.bind (this);
+    this.or    = this.or.bind (this);
+    this.lt    = this.lt.bind (this);
+    this.gte   = this.gte.bind (this);
+    this.lte   = this.lte.bind (this);
+    this.skip  = this.skip.bind (this);
+    this.sort  = this.sort.bind (this);
     this.limit = this.limit.bind (this);
-    this.skip = this.skip.bind (this);
-    this.sort = this.sort.bind (this);
     this.where = this.where.bind (this);
-    this.gt = this.gt.bind (this);
-    this.lt = this.lt.bind (this);
-    this.gte = this.gte.bind (this);
-    this.lte = this.lte.bind (this);
 
     // Bind all public finalization methods to self
     this.find    = this.find.bind (this);
-    this.findOne = this.findOne.bind (this);
     this.count   = this.count.bind (this);
     this.remove  = this.count.bind (this);
+    this.findOne = this.findOne.bind (this);
   }
 
   /**
@@ -107,12 +108,22 @@ class DbQuery {
   /**
    * Filter only Model instances where the specified key matches the specified val, can also be given a filter object
    */
-  or (matches) {
+  or (...matches) {
     // Push query part for `whereOr` and return self
     this.pts.push ({ type: "whereOr", matches: matches });
     return this;
   }
 
+
+  /**
+   * Filter only Model instances where the specified key matches the specified val, can also be given a filter object
+   */
+  and (...matches) {
+    // Push query part for `whereAnd` and return self
+    this.pts.push ({ type: "whereAnd", matches: matches });
+    return this;
+  }
+  
   /**
    * Only return Model instances where the value of the specified key is greater than the specified amount
    */
