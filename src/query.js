@@ -101,7 +101,7 @@ class DbQuery {
   /**
    * Filter only Model instances where the specified key matches the specified val, can also be given a filter object
    */
-  or (matches) {
+  or (...matches) {
     // Push query part for `whereOr` and return self
     this.pts.push ({ type: "whereOr", matches: matches });
     return this;
@@ -111,7 +111,7 @@ class DbQuery {
   /**
    * Filter only Model instances where the specified key matches the specified val, can also be given a filter object
    */
-  and (matches) {
+  and (...matches) {
     // Push query part for `whereAnd` and return self
     this.pts.push ({ type: "whereAnd", matches: matches });
     return this;
