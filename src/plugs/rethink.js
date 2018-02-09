@@ -286,7 +286,43 @@ class RethinkPlug {
           cursor = cursor.filter (orMatchFilters[0]);
         } else if (orMatchFilters.length > 1) {
           // If 2 or more filters, use all as `or` arguments to use in filter
-          cursor = cursor.filter (R.or(...orMatchFilters));
+          cursor = cursor.filter (R.or (...orMatchFilters));
+        }
+      } else if (queryPt.type === 'whereAnd') {
+        // Array for storing filter parts
+        const andMatchFilters = [];
+
+        // Iterate query part possible match objects to make RethinkDB ready filters
+        for (const match of queryPt.matches) {
+          // Variable for storing RethinkDB ready filter
+          let filterPart = null;
+
+          // Iterate all properties of provided object
+          for (const [matchKey, matchVal] of Object.entries (match)) {
+            // Create RethinkDB match for specific row in object
+            let filterPartMatch = R.row (matchKey).default (null).eq (matchVal);
+
+            // If existing filter data, append this as clause, otherwise set this as filter data
+            if (filterPart != null) {
+              filterPart = filterPartMatch.and (filterPart);
+            } else {
+              filterPart = filterPartMatch;
+            }
+          }
+
+          // Push new RethinkDB ready filter
+          andMatchFilters.push (filterPart);
+        }
+
+        if (andMatchFilters.length === 0) {
+          // If no filters, give blank object
+          cursor = cursor.filter ({});
+        } else if (andMatchFilters.length === 1) {
+          // If 1 filter, provide as only filter
+          cursor = cursor.filter (andMatchFilters[0]);
+        } else if (andMatchFilters.length > 1) {
+          // If 2 or more filters, use all as `and` arguments to use in filter
+          cursor = cursor.filter (R.and (...andMatchFilters));
         }
       } else if (queryPt.type === 'limit') {
         // Apply amt to `limit` cursor method
