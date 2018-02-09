@@ -98,6 +98,13 @@ class DbQuery {
   }
 
   /**
+   * Alias of `where`
+   */
+  match (key, value = null) {
+    return this.where (key, value);
+  }
+
+  /**
    * Filter only Model instances where the specified key matches the specified val, can also be given a filter object
    */
   or (matches) {
