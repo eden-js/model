@@ -35,7 +35,7 @@ class Db {
    */
   async register (Model) {
     // Ensure Model is Model class
-    assert.strictEqual (Object.getPrototypeOf (Model), DbModel, "Model must be a DbModel extension");
+    assert.instanceOf (Model.prototype, DbModel, "Model must be a DbModel extension");
 
     // Set internal DB class for the Model to be previously constructed internal DB API class
     Model.__db = this._dbApi;
