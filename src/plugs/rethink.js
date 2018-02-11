@@ -4,6 +4,9 @@
 const R   = require ('rethinkdb');
 const RE2 = require ('re2');
 
+// Require local dependencies
+const DbPlug = require ('../dbplug')
+
 /**
  * Convert a RegExp object to a RethinkDB-compatible Regex string
  */
@@ -46,11 +49,13 @@ function swapKeys (key1, key2, obj) {
 /**
  * RethinkDb database plug class
  */
-class RethinkPlug {
+class RethinkPlug extends DbPlug {
   /**
    * Construct RethinkDb database plug class
    */
   constructor (config) {
+		super ();
+
     // Store map of promises that resolve when table is ready
     this._preparedTables = new Map ();
 

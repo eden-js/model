@@ -5,14 +5,19 @@ const { MongoClient, ObjectId } = require ('mongodb');
 const MQuery = require ('eden-mquery');
 const p = require ('doasync');
 
+// Require local dependencies
+const DbPlug = require ('../dbplug')
+
 /**
  * MongoDb database plug class
  */
-class MongoPlug {
+class MongoPlug extends DbPlug {
   /**
    * Construct MongoDb database plug class
    */
   constructor (config) {
+    super ();
+
     // Store config
     this._config = config;
 

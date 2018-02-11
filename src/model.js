@@ -2,9 +2,11 @@
 
 // Require dependencies
 const DotProp = require ('dot-prop');
+const assert  = require ('chai').assert;
 
 // Require local dependencies
 const DbQuery = require ('./query');
+const DbApi   = require ('./dbapi');
 
 /**
  * Extendable Model class
@@ -140,6 +142,9 @@ class DbModel {
    * Save this Model instance's data to the database
    */
   async save () {
+    // Ensure model is registered before saving model data
+    assert.instanceOf(this.constructor.__db, DbApi, "Model must be registered.")
+
     // Call internal DB API to save this Model instance
     const id = await this.constructor.__db.save (this, this.__id);
 
@@ -154,10 +159,11 @@ class DbModel {
   async remove () {
     // TODO: Should delete class itself too?
 
-    // Throw error if not stored in database
-    if (this.__id == null) {
-      throw new Error ('Model not stored in database');
-    }
+    // Ensure model is registered before removing model data
+    assert.instanceOf(this.constructor.__db, DbApi, "Model must be registered.")
+
+    // Ensure this Model instance is stored in database
+    assert.isNotNull(this.__id, "Model must be stored in database to remove.")
 
     // Call internal DB API to remove the data associated with this Model instance by ID
     await this.constructor.__db.removeById (this.constructor, this.__id);
@@ -170,10 +176,11 @@ class DbModel {
    * Refresh this Model instance's internal data by re-fetching from the database
    */
    async refresh () {
-     // Throw error if this Model instance is not stored in the database
-     if (this.__id == null) {
-       throw new Error ("Model not stored in database");
-     }
+     // Ensure model is registered before fetching model data
+     assert.instanceOf(this.constructor.__db, DbApi, "Model must be registered.")
+
+     // Ensure this Model instance is stored in database
+     assert.isNotNull(this.__id, "Model must be stored in database to refresh.")
 
      // Replace this Model instance's internal data with fetched data from the database
      this.__data = await this.constructor.__db.findDataById (this.constructor, this.__id)
@@ -183,6 +190,9 @@ class DbModel {
    * Create database query builder from self and associated DB API
    */
   static __query () {
+    // Ensure model is registered before creating query
+    assert.instanceOf(this.__db, DbApi, "Model must be registered.")
+
     // Return a newly constructed DbQuery given `this` and internal DB API
     return new DbQuery (this, this.__db);
   }
@@ -191,6 +201,10 @@ class DbModel {
    * Find model by ID
    */
   static async findById (id) {
+    // Ensure model is registered before finding by ID
+    assert.instanceOf(this.__db, DbApi, "Model must be registered.")
+
+    // Return model found by ID
     return await this.__db.findById (this, id);
   }
 
