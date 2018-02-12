@@ -257,7 +257,10 @@ class RethinkPlug extends DbPlug {
 
         // Apply filter object to `filter` cursor method
         cursor = cursor.filter (queryPt.filter);
-      } else if (queryPt.type === 'whereOr') {
+      } else if (queryPt.type === 'ne') {
+				// Add a custom filter method to the cursor
+				cursor = cursor.filter (R.row (queryPt.key).default (null).ne (queryPt.val));
+			} else if (queryPt.type === 'whereOr') {
         // Array for storing filter parts
         const orMatchFilters = [];
 
@@ -320,8 +323,7 @@ class RethinkPlug extends DbPlug {
         }
 
         if (andMatchFilters.length === 0) {
-          // If no filters, give blank object
-          cursor = cursor.filter ({});
+          // If no filters, do nothing
         } else if (andMatchFilters.length === 1) {
           // If 1 filter, provide as only filter
           cursor = cursor.filter (andMatchFilters[0]);

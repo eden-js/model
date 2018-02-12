@@ -27,8 +27,13 @@ class DbQuery {
     this.sort  = this.sort.bind (this);
     this.limit = this.limit.bind (this);
     this.where = this.where.bind (this);
+    this.match = this.match.bind (this);
+    this.ne    = this.ne.bind (this);
+    this.or    = this.or.bind (this);
+    this.and   = this.and.bind (this);
 
     // Bind all public finalization methods to self
+    this.sum     = this.sum.bind (this);
     this.find    = this.find.bind (this);
     this.count   = this.count.bind (this);
     this.remove  = this.count.bind (this);
@@ -99,6 +104,15 @@ class DbQuery {
   }
 
   /**
+   * Filter only Model instances where the specified key does not match the specified val
+   */
+  ne (key, value) {
+    // Push query part for `ne` and return self
+    this.pts.push ({ type: "ne", val: value, key: key });
+    return this;
+  }
+
+  /**
    * Alias of `where`
    */
   match (key, value = null) {
@@ -106,7 +120,7 @@ class DbQuery {
   }
 
   /**
-   * Filter only Model instances where the specified key matches the specified val, can also be given a filter object
+   * Filter only Model instances by filter using multiple filter objects, where only one has to match
    */
   or (...matches) {
     // Push query part for `whereOr` and return self
@@ -116,14 +130,14 @@ class DbQuery {
 
 
   /**
-   * Filter only Model instances where the specified key matches the specified val, can also be given a filter object
+   * Filter only Model instances by filter using multiple filter objects, where all have to match
    */
   and (...matches) {
     // Push query part for `whereAnd` and return self
     this.pts.push ({ type: "whereAnd", matches: matches });
     return this;
   }
-  
+
   /**
    * Only return Model instances where the value of the specified key is greater than the specified amount
    */

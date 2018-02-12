@@ -233,6 +233,8 @@ class DbModel {
   static sort (key, direction) { return this.__query ().sort (key, direction) }
   // Create a query builder with initial `where` set
   static where (key, value) { return this.__query ().where (key, value) }
+  // Create a query builder with initial `ne` set
+  static ne (key, value) { return this.__query ().ne (key, value) }
   // Create a query builder with initial `match` set
   static match (key, value) { return this.__query ().match (key, value) }
   // Create a query builder with initial `or` set

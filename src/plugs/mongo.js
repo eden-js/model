@@ -110,17 +110,20 @@ class MongoPlug extends DbPlug {
 
         // Apply filter object to `where` cursor method
         cursor = cursor.where (filter);
+      } else if (queryPt.type === 'ne') {
+        // Apply supplied matches array to `where` and `ne` cursor method
+        cursor = cursor.where (queryPt.key).ne (queryPt.val);
       } else if (queryPt.type === 'whereOr') {
-          // Apply supplied matches array to `or` cursor method
+        // Apply supplied matches array to `or` cursor method
         cursor = cursor.or (queryPt.matches);
       } else if (queryPt.type === 'whereAnd') {
         // Apply supplied matches array to `and` cursor method
         cursor = cursor.and (queryPt.matches);
       } else if (queryPt.type === 'limit') {
-          // Apply amt to `limit` cursor method
+        // Apply amt to `limit` cursor method
         cursor = cursor.limit (queryPt.limitAmount);
       } else if (queryPt.type === 'skip') {
-          // Apply amt to `skip` cursor method
+        // Apply amt to `skip` cursor method
         cursor = cursor.skip (queryPt.skipAmount);
       } else if (queryPt.type === 'sort') {
         // Apply custom sort filter object to `sort` cursor method
