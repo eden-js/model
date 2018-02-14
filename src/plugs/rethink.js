@@ -53,7 +53,13 @@ function dotPropRethinkKey (key, initialCursor = null) {
 	const keyParts = key.split ('.');
 	let objectCursor = null;
 
-	for (const keyPart of keyParts) {
+	for (let keyPart of keyParts) {
+		if (keyPart === 'id') {
+			keyPart = '_id';
+		} else if (keyPart === '_id') {
+			keyPart = 'id';
+		}
+
 		if (objectCursor == null) {
 			objectCursor = (initialCursor != null ? initialCursor : R.row) (keyPart);
 		} else {
@@ -75,7 +81,7 @@ function flatifyObj (obj) {
 			if (iteratedObj.hasOwnProperty(prop)) {
 				const fullPath = (path.length > 0 ? `${path}.${prop}` : `${prop}`)
 
-				if (typeof iteratedObj[prop] === "object") {
+				if (typeof iteratedObj[prop] === "object" && !(iteratedObj[prop] instanceof RegExp)) {
 					iterate (iteratedObj[prop], fullPath);
 				} else {
 					flatObj[fullPath] = iteratedObj[prop]
@@ -284,12 +290,14 @@ class RethinkPlug extends DbPlug {
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
 				const flatFilter = flatifyObj (queryPt.filter);
+				console.log(flatFilter)
 
         for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
           // If value data is a RegExp match, handle seperately
           if (filterVal instanceof RegExp) {
             // Create rethinkdb-friendly regex string and apply to new match part
             const regexString = regexToGoodString (filterVal).toString ();
+						console.log(`${filterKey}: '${regexString}'`)
             cursor = cursor.filter (dotPropRethinkKey (filterKey).match (regexString));
           } else {
 						cursor = cursor.filter (dotPropRethinkKey (filterKey).default (null).eq (filterVal))
