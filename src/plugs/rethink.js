@@ -53,20 +53,26 @@ function dotPropRethinkKey (key, initialCursor = null) {
 	const keyParts = key.split ('.');
 	let objectCursor = null;
 
+	// Iterate parts of key
 	for (let keyPart of keyParts) {
-		if (keyPart === 'id') {
-			keyPart = '_id';
-		} else if (keyPart === '_id') {
-			keyPart = 'id';
-		}
-
+		// If is first part or not
 		if (objectCursor == null) {
+			// Swap `_id` and `id`
+			if (keyPart === 'id') {
+				keyPart = '_id';
+			} else if (keyPart === '_id') {
+				keyPart = 'id';
+			}
+
+			// Set first cursor part to be "brackets" selected subprop of either initialCursor or R.row
 			objectCursor = (initialCursor != null ? initialCursor : R.row) (keyPart);
 		} else {
+			// Use rethink "brackets" to select subprop
 			objectCursor = objectCursor (keyPart);
 		}
 	}
 
+	// Return new cursor constructed from key
 	return objectCursor;
 }
 
