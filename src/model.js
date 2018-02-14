@@ -227,6 +227,8 @@ class DbModel {
    */
   // Create a query builder with initial `limit` set
   static limit (amt) { return this.__query ().limit (amt) }
+  // Create a query builder with initial `elem` set
+  static elem (arrKey, filter) { return this.__query ().elem (arrKey, filter) }
   // Create a query builder with initial `skip` set
   static skip (amt) { return this.__query ().skip (amt) }
   // Create a query builder with initial `sort` set

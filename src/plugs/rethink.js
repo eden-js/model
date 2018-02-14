@@ -49,13 +49,13 @@ function swapKeys (key1, key2, obj) {
 /**
  * Use a dotProp-style key to find a nested property in a Rethinkdb object cursor
  */
-function dotPropRethinkKey (key) {
+function dotPropRethinkKey (key, initialCursor = null) {
 	const keyParts = key.split ('.');
 	let objectCursor = null;
 
 	for (const keyPart of keyParts) {
 		if (objectCursor == null) {
-			objectCursor = R.row (keyPart);
+			objectCursor = (initialCursor != null ? initialCursor : R.row) (keyPart);
 		} else {
 			objectCursor = objectCursor (keyPart);
 		}
@@ -297,7 +297,35 @@ class RethinkPlug extends DbPlug {
 						cursor = cursor.filter (dotPropRethinkKey (filterKey).default (null).eq (filterVal))
 					}
         }
-      } else if (queryPt.type === 'ne') {
+      } else if (queryPt.type === 'elem') {
+				const flatFilter = flatifyObj (queryPt.filter);
+
+				cursor = cursor.filter (dotPropRethinkKey (queryPt.arrKey).contains ((elem) => {
+					let elemFilterCursor = null;
+
+					for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
+						let elemFilterCursorPart = null;
+
+						if (filterVal instanceof RegExp) {
+							// Construct a compatible Regex string from the RegExp filter value
+							const regexString = regexToGoodString (filterVal).toString ();
+
+							// Add a custom filter method to the cursor
+							elemFilterCursorPart = dotPropRethinkKey (filterKey, elem).match (regexString)
+						} else {
+							elemFilterCursorPart = dotPropRethinkKey (filterKey, elem).default (null).eq (filterVal)
+						}
+
+						if (elemFilterCursor == null) {
+							elemFilterCursor = elemFilterCursorPart;
+						} else {
+							elemFilterCursor = elemFilterCursor.and (elemFilterCursorPart);
+						}
+					}
+
+					return elemFilterCursor != null ? elemFilterCursor : true
+				}));
+			} else if (queryPt.type === 'ne') {
 				// Add a custom filter method to the cursor
 				cursor = cursor.filter (dotPropRethinkKey (queryPt.key).default (null).ne (queryPt.val));
 			} else if (queryPt.type === 'whereOr') {
@@ -309,7 +337,6 @@ class RethinkPlug extends DbPlug {
 					const flatFilter = flatifyObj (match);
 
 					for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
-						// If value data is a RegExp match, handle seperately
 						if (filterVal instanceof RegExp) {
 							// Construct a compatible Regex string from the RegExp filter value
 							const regexString = regexToGoodString (filterVal).toString ();

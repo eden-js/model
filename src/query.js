@@ -26,6 +26,7 @@ class DbQuery {
     this.skip  = this.skip.bind (this);
     this.sort  = this.sort.bind (this);
     this.limit = this.limit.bind (this);
+    this.elem  = this.elem.bind (this);
     this.where = this.where.bind (this);
     this.match = this.match.bind (this);
     this.ne    = this.ne.bind (this);
@@ -46,6 +47,15 @@ class DbQuery {
   limit (amt) {
     // Push query part for `limit` and return self
     this.pts.push ({ type: "limit", limitAmount: amt });
+    return this;
+  }
+
+  /**
+   * Filter by if element matches in array
+   */
+  elem (arrKey, filter) {
+    // Push query part for `elem` and return self
+    this.pts.push ({ type: "elem", arrKey: arrKey, filter: filter });
     return this;
   }
 
