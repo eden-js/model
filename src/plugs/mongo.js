@@ -111,6 +111,7 @@ class MongoPlug extends DbPlug {
         // Apply filter object to `where` cursor method
         cursor = cursor.where (filter);
       } else if (queryPt.type === 'elem') {
+        // Apply supplied matches array to `where` and `elemMatch` cursor method
         cursor = cursor.where (queryPt.arrKey).elemMatch (queryPt.filter);
       } else if (queryPt.type === 'ne') {
         // Apply supplied matches array to `where` and `ne` cursor method
