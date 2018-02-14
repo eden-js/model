@@ -47,6 +47,49 @@ function swapKeys (key1, key2, obj) {
 }
 
 /**
+ * Use a dotProp-style key to find a nested property in a Rethinkdb object cursor
+ */
+function dotPropRethinkKey (key) {
+	const keyParts = key.split ('.');
+	let objectCursor = null;
+
+	for (const keyPart of keyParts) {
+		if (objectCursor == null) {
+			objectCursor = R.row (keyPart);
+		} else {
+			objectCursor = objectCursor (keyPart);
+		}
+	}
+
+	return objectCursor;
+}
+
+/**
+ * Flatten an object replacing nested structures with dotprop keys
+ */
+function flatifyObj (obj) {
+	const flatObj = {}
+
+	function iterate (iteratedObj, path = "") {
+		for (const prop in iteratedObj) {
+			if (iteratedObj.hasOwnProperty(prop)) {
+				const fullPath = (path.length > 0 ? `${path}.${prop}` : `${prop}`)
+
+				if (typeof iteratedObj[prop] === "object") {
+					iterate (iteratedObj[prop], fullPath);
+				} else {
+					flatObj[fullPath] = iteratedObj[prop]
+				}
+			}
+		}
+	}
+
+	iterate (obj);
+
+	return flatObj;
+}
+
+/**
  * RethinkDb database plug class
  */
 class RethinkPlug extends DbPlug {
@@ -240,41 +283,58 @@ class RethinkPlug extends DbPlug {
   _queryToCursor (cursor, query) {
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
-        // Iterate all values in the filter object
-        for (const [filterKey, filterVal] of Object.entries (queryPt.filter)) {
+				const flatFilter = flatifyObj (queryPt.filter);
+
+        for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
           // If value data is a RegExp match, handle seperately
           if (filterVal instanceof RegExp) {
-            // Delete by key from filter object
-            delete queryPt.filter[filterKey];
-
             // Construct a compatible Regex string from the RegExp filter value
             const regexString = regexToGoodString (filterVal).toString ();
 
             // Add a custom filter method to the cursor
-            cursor = cursor.filter (R.row (filterKey).match (regexString));
-          }
+            cursor = cursor.filter (dotPropRethinkKey (filterKey).match (regexString));
+          } else {
+						cursor = cursor.filter (dotPropRethinkKey (filterKey).default (null).eq (filterVal))
+					}
         }
-
-        // Apply filter object to `filter` cursor method
-        cursor = cursor.filter (queryPt.filter);
       } else if (queryPt.type === 'ne') {
 				// Add a custom filter method to the cursor
-				cursor = cursor.filter (R.row (queryPt.key).default (null).ne (queryPt.val));
+				cursor = cursor.filter (dotPropRethinkKey (queryPt.key).default (null).ne (queryPt.val));
 			} else if (queryPt.type === 'whereOr') {
         // Array for storing filter parts
         const orMatchFilters = [];
 
         // Iterate query part possible match objects to make RethinkDB ready filters
         for (const match of queryPt.matches) {
+					const flatFilter = flatifyObj (match);
+
+					for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
+						// If value data is a RegExp match, handle seperately
+						if (filterVal instanceof RegExp) {
+							// Construct a compatible Regex string from the RegExp filter value
+							const regexString = regexToGoodString (filterVal).toString ();
+
+							// Add a custom filter method to the cursor
+							cursor = cursor.filter (dotPropRethinkKey (filterKey).match (regexString));
+						} else {
+							cursor = cursor.filter (dotPropRethinkKey (filterKey).default (null).eq (filterVal))
+						}
+					}
+
           // Variable for storing RethinkDB ready filter
           let filterPart = null;
 
           // Iterate all properties of provided object
           for (const [matchKey, matchVal] of Object.entries (match)) {
-            // Create RethinkDB match for specific row in object
-            let filterPartMatch = R.row (matchKey).default (null).eq (matchVal);
+            let filterPartMatch = null
 
-            // If existing filter data, append this as clause, otherwise set this as filter data
+						if (filterVal instanceof RegExp) {
+							const regexString = regexToGoodString (filterVal).toString ();
+							filterPartMatch = dotPropRethinkKey (filterKey).match (regexString);
+						} else {
+							filterPartMatch = dotPropRethinkKey (filterKey).default (null).eq (filterVal);
+						}
+
             if (filterPart != null) {
               filterPart = filterPartMatch.and (filterPart);
             } else {
@@ -307,8 +367,14 @@ class RethinkPlug extends DbPlug {
 
           // Iterate all properties of provided object
           for (const [matchKey, matchVal] of Object.entries (match)) {
-            // Create RethinkDB match for specific row in object
-            let filterPartMatch = R.row (matchKey).default (null).eq (matchVal);
+						let filterPartMatch = null;
+
+						if (filterVal instanceof RegExp) {
+							const regexString = regexToGoodString (filterVal).toString ();
+							filterPartMatch = dotPropRethinkKey (filterKey).match (regexString);
+						} else {
+							filterPartMatch = dotPropRethinkKey (filterKey).default (null).eq (filterVal);
+						}
 
             // If existing filter data, append this as clause, otherwise set this as filter data
             if (filterPart != null) {
@@ -339,19 +405,19 @@ class RethinkPlug extends DbPlug {
         cursor = cursor.skip (queryPt.skipAmount);
       } else if (queryPt.type === 'sort') {
         // Create sort filter and apply to `orderBy` cursor method
-        cursor = cursor.orderBy (queryPt.desc ? R.desc (R.row (queryPt.sortKey)) : R.asc (R.row (queryPt.sortKey)));
+        cursor = cursor.orderBy (queryPt.desc ? R.desc (dotPropRethinkKey (queryPt.sortKey)) : R.asc (dotPropRethinkKey (queryPt.sortKey)));
       } else if (queryPt.type === 'gt') {
         // Create `gt` filter using provided key and min and apply to `filter` cursor method
-        cursor = cursor.filter (R.row (queryPt.key).gt (queryPt.min));
+        cursor = cursor.filter (dotPropRethinkKey (queryPt.key).gt (queryPt.min));
       } else if (queryPt.type === 'lt') {
         // Create `lt` filter using provided key and min and apply to `filter` cursor method
-        cursor = cursor.filter (R.row (queryPt.key).lt (queryPt.max));
+        cursor = cursor.filter (dotPropRethinkKey (queryPt.key).lt (queryPt.max));
       } else if (queryPt.type === 'gte') {
         // Create `gte` filter using provided key and min and apply to `filter` cursor method
-        cursor = cursor.filter (R.row (queryPt.key).ge (queryPt.min));
+        cursor = cursor.filter (dotPropRethinkKey (queryPt.key).ge (queryPt.min));
       } else if (queryPt.type === 'lte') {
         // Create `lte` filter using provided key and min and apply to `filter` cursor method
-        cursor = cursor.filter (R.row (queryPt.key).le (queryPt.max));
+        cursor = cursor.filter (dotPropRethinkKey (queryPt.key).le (queryPt.max));
       }
     }
 
