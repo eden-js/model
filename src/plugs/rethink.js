@@ -340,7 +340,7 @@ class RethinkPlug extends DbPlug {
           let filterPart = null;
 
           // Iterate all properties of provided object
-          for (const [matchKey, matchVal] of Object.entries (flatFilter)) {
+          for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
 						// Variable for storing single constructed part of match
 						let filterPartMatch = null;
 
@@ -389,7 +389,7 @@ class RethinkPlug extends DbPlug {
           let filterPart = null;
 
           // Iterate all properties of provided object
-          for (const [matchKey, matchVal] of Object.entries (flatFilter)) {
+          for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
 						// Variable for storing single constructed part of match
 						let filterPartMatch = null;
 
