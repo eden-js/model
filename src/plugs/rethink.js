@@ -290,14 +290,12 @@ class RethinkPlug extends DbPlug {
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
 				const flatFilter = flatifyObj (queryPt.filter);
-				console.log(flatFilter)
 
         for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
           // If value data is a RegExp match, handle seperately
           if (filterVal instanceof RegExp) {
             // Create rethinkdb-friendly regex string and apply to new match part
             const regexString = regexToGoodString (filterVal).toString ();
-						console.log(`${filterKey}: '${regexString}'`)
             cursor = cursor.filter (dotPropRethinkKey (filterKey).match (regexString));
           } else {
 						cursor = cursor.filter (dotPropRethinkKey (filterKey).default (null).eq (filterVal))
