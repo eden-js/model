@@ -12,15 +12,15 @@ const DbPlug = require ('../dbplug')
  */
 function regexToGoodString (re) {
   // Create a string of the RegExp object from RE2
-	const baseStr = (new RE2 (re)).toString ();
+  const baseStr = (new RE2 (re)).toString ();
   // Match the base components of the Regex string
-	const baseStrMatch = baseStr.match (/\/(.*)\/(.*)/);
+  const baseStrMatch = baseStr.match (/\/(.*)\/(.*)/);
 
   // Create a string that will be the appropriate format for flags
-	const flagStr = baseStrMatch[2].length > 0 ? `(?${baseStrMatch[2]})` : '';
+  const flagStr = baseStrMatch[2].length > 0 ? `(?${baseStrMatch[2]})` : '';
 
   // Return the reconstructed Regex string
-	return `${flagStr}${baseStrMatch[1]}`;
+  return `${flagStr}${baseStrMatch[1]}`;
 }
 
 /**
@@ -50,55 +50,55 @@ function swapKeys (key1, key2, obj) {
  * Use a dotProp-style key to find a nested property in a Rethinkdb object cursor
  */
 function dotPropRethinkKey (key, initialCursor = null) {
-	const keyParts = key.split ('.');
-	let objectCursor = null;
+  const keyParts = key.split ('.');
+  let objectCursor = null;
 
-	// Iterate parts of key
-	for (let keyPart of keyParts) {
-		// If is first part or not
-		if (objectCursor == null) {
-			// Swap `_id` and `id`
-			if (keyPart === 'id') {
-				keyPart = '_id';
-			} else if (keyPart === '_id') {
-				keyPart = 'id';
-			}
+  // Iterate parts of key
+  for (let keyPart of keyParts) {
+    // If is first part or not
+    if (objectCursor == null) {
+      // Swap `_id` and `id`
+      if (keyPart === 'id') {
+        keyPart = '_id';
+      } else if (keyPart === '_id') {
+        keyPart = 'id';
+      }
 
-			// Set first cursor part to be "brackets" selected subprop of either initialCursor or R.row
-			objectCursor = (initialCursor != null ? initialCursor : R.row) (keyPart);
-		} else {
-			// Use rethink "brackets" to select subprop
-			objectCursor = objectCursor (keyPart);
-		}
-	}
+      // Set first cursor part to be "brackets" selected subprop of either initialCursor or R.row
+      objectCursor = (initialCursor != null ? initialCursor : R.row) (keyPart);
+    } else {
+      // Use rethink "brackets" to select subprop
+      objectCursor = objectCursor (keyPart);
+    }
+  }
 
-	// Return new cursor constructed from key
-	return objectCursor;
+  // Return new cursor constructed from key
+  return objectCursor;
 }
 
 /**
  * Flatten an object replacing nested structures with dotprop keys
  */
 function flatifyObj (obj) {
-	const flatObj = {}
+  const flatObj = {}
 
-	function iterate (iteratedObj, path = "") {
-		for (const prop in iteratedObj) {
-			if (iteratedObj.hasOwnProperty(prop)) {
-				const fullPath = (path.length > 0 ? `${path}.${prop}` : `${prop}`)
+  function iterate (iteratedObj, path = "") {
+    for (const prop in iteratedObj) {
+      if (iteratedObj.hasOwnProperty(prop)) {
+        const fullPath = (path.length > 0 ? `${path}.${prop}` : `${prop}`)
 
-				if (typeof iteratedObj[prop] === "object" && !(iteratedObj[prop] instanceof RegExp)) {
-					iterate (iteratedObj[prop], fullPath);
-				} else {
-					flatObj[fullPath] = iteratedObj[prop]
-				}
-			}
-		}
-	}
+        if (typeof iteratedObj[prop] === "object" && !(iteratedObj[prop] instanceof RegExp)) {
+          iterate (iteratedObj[prop], fullPath);
+        } else {
+          flatObj[fullPath] = iteratedObj[prop]
+        }
+      }
+    }
+  }
 
-	iterate (obj);
+  iterate (obj);
 
-	return flatObj;
+  return flatObj;
 }
 
 /**
@@ -109,7 +109,7 @@ class RethinkPlug extends DbPlug {
    * Construct RethinkDb database plug class
    */
   constructor (config) {
-		super ();
+    super ();
 
     // Store map of promises that resolve when table is ready
     this._preparedTables = new Map ();
@@ -295,7 +295,8 @@ class RethinkPlug extends DbPlug {
   _queryToCursor (cursor, query) {
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
-				const flatFilter = flatifyObj (queryPt.filter);
+        const flatFilter = flatifyObj (queryPt.filter);
+
 
         for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
           // If value data is a RegExp match, handle seperately
@@ -304,67 +305,67 @@ class RethinkPlug extends DbPlug {
             const regexString = regexToGoodString (filterVal).toString ();
             cursor = cursor.filter (dotPropRethinkKey (filterKey).match (regexString));
           } else {
-						cursor = cursor.filter (dotPropRethinkKey (filterKey).default (null).eq (filterVal))
-					}
+            cursor = cursor.filter (dotPropRethinkKey (filterKey).default (null).eq (filterVal))
+          }
         }
       } else if (queryPt.type === 'elem') {
-				// Flatten recursive object to flat map of dotProp key to value
-				const flatFilter = flatifyObj (queryPt.filter);
+        // Flatten recursive object to flat map of dotProp key to value
+        const flatFilter = flatifyObj (queryPt.filter);
 
-				// Apply `filter` method to cursor to filter out models that do not have array elements matching filter
-				cursor = cursor.filter (dotPropRethinkKey (queryPt.arrKey).contains ((elem) => {
-					// Variable for storing RethinkDB ready filter
-					let filterPart = null;
+        // Apply `filter` method to cursor to filter out models that do not have array elements matching filter
+        cursor = cursor.filter (dotPropRethinkKey (queryPt.arrKey).contains ((elem) => {
+          // Variable for storing RethinkDB ready filter
+          let filterPart = null;
 
-					for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
-							// Variable for storing single constructed part of match
-						let filterPartMatch = null;
+          for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
+              // Variable for storing single constructed part of match
+            let filterPartMatch = null;
 
-						if (filterVal instanceof RegExp) {
-							// Create rethinkdb-friendly regex string and apply to new match part
-							const regexString = regexToGoodString (filterVal).toString ();
-							filterPartMatch = dotPropRethinkKey (filterKey, elem).match (regexString)
-						} else {
-							// Apply eq to new match part
-							filterPartMatch = dotPropRethinkKey (filterKey, elem).default (null).eq (filterVal)
-						}
+            if (filterVal instanceof RegExp) {
+              // Create rethinkdb-friendly regex string and apply to new match part
+              const regexString = regexToGoodString (filterVal).toString ();
+              filterPartMatch = dotPropRethinkKey (filterKey, elem).match (regexString)
+            } else {
+              // Apply eq to new match part
+              filterPartMatch = dotPropRethinkKey (filterKey, elem).default (null).eq (filterVal)
+            }
 
-						// Set filter part to either include this match part or be this match part depending on if already created
-						filterPart = (filterPart != null ? filterPart.and (filterPartMatch) : filterPartMatch)
-					}
+            // Set filter part to either include this match part or be this match part depending on if already created
+            filterPart = (filterPart != null ? filterPart.and (filterPartMatch) : filterPartMatch)
+          }
 
-					// Return constructed rethinkdb cursor or `true` if not created
-					return filterPart != null ? filterPart : true
-				}));
-			} else if (queryPt.type === 'ne') {
-				// Add a custom filter method to the cursor
-				cursor = cursor.filter (dotPropRethinkKey (queryPt.key).default (null).ne (queryPt.val));
-			} else if (queryPt.type === 'whereOr') {
+          // Return constructed rethinkdb cursor or `true` if not created
+          return filterPart != null ? filterPart : true
+        }));
+      } else if (queryPt.type === 'ne') {
+        // Add a custom filter method to the cursor
+        cursor = cursor.filter (dotPropRethinkKey (queryPt.key).default (null).ne (queryPt.val));
+      } else if (queryPt.type === 'whereOr') {
         // Array for storing filter parts
         const orMatchFilters = [];
 
         // Iterate query part possible match objects to make RethinkDB ready filters
         for (const match of queryPt.matches) {
-					// Flatten recursive object to flat map of dotProp key to value
-					const flatFilter = flatifyObj (match);
+          // Flatten recursive object to flat map of dotProp key to value
+          const flatFilter = flatifyObj (match);
 
           // Variable for storing RethinkDB ready filter
           let filterPart = null;
 
           // Iterate all properties of provided object
           for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
-						// Variable for storing single constructed part of match
-						let filterPartMatch = null;
+            // Variable for storing single constructed part of match
+            let filterPartMatch = null;
 
-						// Handle regex with `match` and others with `eq`
-						if (filterVal instanceof RegExp) {
-							// Create rethinkdb-friendly regex string and apply to new match part
-							const regexString = regexToGoodString (filterVal).toString ();
-							filterPartMatch = dotPropRethinkKey (filterKey).match (regexString);
-						} else {
-							// Apply eq to new match part
-							filterPartMatch = dotPropRethinkKey (filterKey).default (null).eq (filterVal);
-						}
+            // Handle regex with `match` and others with `eq`
+            if (filterVal instanceof RegExp) {
+              // Create rethinkdb-friendly regex string and apply to new match part
+              const regexString = regexToGoodString (filterVal).toString ();
+              filterPartMatch = dotPropRethinkKey (filterKey).match (regexString);
+            } else {
+              // Apply eq to new match part
+              filterPartMatch = dotPropRethinkKey (filterKey).default (null).eq (filterVal);
+            }
 
             // If existing filter data, append this as clause, otherwise set this as filter data
             if (filterPart != null) {
@@ -394,26 +395,26 @@ class RethinkPlug extends DbPlug {
 
         // Iterate query part possible match objects to make RethinkDB ready filters
         for (const match of queryPt.matches) {
-					// Flatten recursive object to flat map of dotProp key to value
-					const flatFilter = flatifyObj (match);
+          // Flatten recursive object to flat map of dotProp key to value
+          const flatFilter = flatifyObj (match);
 
           // Variable for storing RethinkDB ready filter
           let filterPart = null;
 
           // Iterate all properties of provided object
           for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
-						// Variable for storing single constructed part of match
-						let filterPartMatch = null;
+            // Variable for storing single constructed part of match
+            let filterPartMatch = null;
 
-						// Handle regex with `match` and others with `eq`
-						if (filterVal instanceof RegExp) {
-							// Create rethinkdb-friendly regex string and apply to new match part
-							const regexString = regexToGoodString (filterVal).toString ();
-							filterPartMatch = dotPropRethinkKey (filterKey).match (regexString);
-						} else {
-							// Apply eq to new match part
-							filterPartMatch = dotPropRethinkKey (filterKey).default (null).eq (filterVal);
-						}
+            // Handle regex with `match` and others with `eq`
+            if (filterVal instanceof RegExp) {
+              // Create rethinkdb-friendly regex string and apply to new match part
+              const regexString = regexToGoodString (filterVal).toString ();
+              filterPartMatch = dotPropRethinkKey (filterKey).match (regexString);
+            } else {
+              // Apply eq to new match part
+              filterPartMatch = dotPropRethinkKey (filterKey).default (null).eq (filterVal);
+            }
 
             // If existing filter data, append this as clause, otherwise set this as filter data
             if (filterPart != null) {
