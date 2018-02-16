@@ -111,8 +111,15 @@ class MongoPlug extends DbPlug {
         // Apply filter object to `where` cursor method
         cursor = cursor.where (filter);
       } else if (queryPt.type === 'elem') {
-        // Apply supplied matches array to `where` and `elemMatch` cursor method
-        cursor = cursor.where (queryPt.arrKey).elemMatch (queryPt.filter);
+        if (typeof queryPt.filter !== 'object') {
+          // Apply supplied matches array to `where` and `elemMatch` cursor method
+          cursor = cursor.where (queryPt.arrKey).elemMatch ({
+            $eq: queryPt.filter,
+          });
+        } else {
+          // Apply supplied matches array to `where` and `elemMatch` cursor method
+          cursor = cursor.where (queryPt.arrKey).elemMatch (queryPt.filter);
+        }
       } else if (queryPt.type === 'ne') {
         // Apply supplied matches array to `where` and `ne` cursor method
         cursor = cursor.where (queryPt.key).ne (queryPt.val);
@@ -300,7 +307,7 @@ class MongoPlug extends DbPlug {
     const mQuery = MQuery (this._db.collection (collectionId));
 
     // Find and remove matching Model instance data by provided query
-    await this._queryToCursor (mQuery, query).remove ().exec ();
+    await this._queryToCursor (mQuery, query).deleteMany ().exec ();
   }
 
   /**

@@ -249,8 +249,8 @@ class DbModel {
   static lt (key, max) { return this.__query ().lt (key, max) }
   // Create a query builder with initial `gte` set
   static gte (key, min) { return this.__query ().gte (key, min) }
-  // Create a query builder with initial `gt` set
-  static lte (key, max) { return this.__query ().gt (key, max) }
+  // Create a query builder with initial `lte` set
+  static lte (key, max) { return this.__query ().lte (key, max) }
 }
 
 // Exports

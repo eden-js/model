@@ -197,7 +197,7 @@ class DbApi {
     const collectionId = modelCollectionId (Model);
 
     // Remove Model instances matching provided query
-    await this._plug.removeById (collectionId, query);
+    await this._plug.remove (collectionId, query);
   }
 
   /**

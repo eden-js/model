@@ -311,11 +311,16 @@ class RethinkPlug extends DbPlug {
           }
         }
       } else if (queryPt.type === 'elem') {
-        // Flatten recursive object to flat map of dotProp key to value
-        const flatFilter = flatifyObj (queryPt.filter);
 
         // Apply `filter` method to cursor to filter out models that do not have array elements matching filter
         cursor = cursor.filter (dotPropRethinkKey (queryPt.arrKey).contains ((elem) => {
+          if (typeof queryPt.filter != "object") {
+            return elem.eq (queryPt.filter);
+          }
+
+          // Flatten recursive object to flat map of dotProp key to value
+          const flatFilter = flatifyObj (queryPt.filter);
+
           // Variable for storing RethinkDB ready filter
           let filterPart = null;
 

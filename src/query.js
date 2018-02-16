@@ -37,7 +37,7 @@ class DbQuery {
     this.sum     = this.sum.bind (this);
     this.find    = this.find.bind (this);
     this.count   = this.count.bind (this);
-    this.remove  = this.count.bind (this);
+    this.remove  = this.remove.bind (this);
     this.findOne = this.findOne.bind (this);
   }
 
