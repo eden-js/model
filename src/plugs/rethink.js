@@ -2,7 +2,7 @@
 
 // Require dependencies
 const R   = require ('rethinkdb');
-const RE2 = require ('re2');
+// const RE2 = require ('re2');
 
 // Require local dependencies
 const DbPlug = require ('../dbplug')
@@ -12,7 +12,9 @@ const DbPlug = require ('../dbplug')
  */
 function regexToGoodString (re) {
   // Create a string of the RegExp object from RE2
-  const baseStr = (new RE2 (re)).toString ();
+  //const baseStr = (new RE2 (re)).toString ();
+  const baseStr = re.toString ();
+
   // Match the base components of the Regex string
   const baseStrMatch = baseStr.match (/\/(.*)\/(.*)/);
 
