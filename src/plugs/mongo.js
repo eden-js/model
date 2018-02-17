@@ -137,7 +137,7 @@ class MongoPlug extends DbPlug {
         cursor = cursor.skip (queryPt.skipAmount);
       } else if (queryPt.type === 'sort') {
         // Apply custom sort filter object to `sort` cursor method
-        cursor = cursor.sort ({ [queryPt.sortKey]: queryPt.desc ? 'desc' : 'asc' });
+        cursor = cursor.sort ({ [queryPt.sortKey]: queryPt.desc ? -1 : 1 });
       } else if (queryPt.type === 'gt') {
         // Apply key and max to `where` and `gt` cursor method
         cursor = cursor.where (queryPt.key).gt (queryPt.min);
