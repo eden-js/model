@@ -226,31 +226,31 @@ class DbModel {
    * Query constructor methods
    */
   // Create a query builder with initial `limit` set
-  static limit (amt) { return this.__query ().limit (amt) }
+  static limit (...args) { return this.__query ().limit (...args) }
   // Create a query builder with initial `elem` set
-  static elem (arrKey, filter) { return this.__query ().elem (arrKey, filter) }
+  static elem (...args) { return this.__query ().elem (...args) }
   // Create a query builder with initial `skip` set
-  static skip (amt) { return this.__query ().skip (amt) }
+  static skip (...args) { return this.__query ().skip (...args) }
   // Create a query builder with initial `sort` set
-  static sort (key, direction) { return this.__query ().sort (key, direction) }
+  static sort (...args) { return this.__query ().sort (...args) }
   // Create a query builder with initial `where` set
-  static where (key, value) { return this.__query ().where (key, value) }
+  static where (...args) { return this.__query ().where (...args) }
   // Create a query builder with initial `ne` set
-  static ne (key, value) { return this.__query ().ne (key, value) }
+  static ne (...args) { return this.__query ().ne (...args) }
   // Create a query builder with initial `match` set
-  static match (key, value) { return this.__query ().match (key, value) }
+  static match (...args) { return this.__query ().match (...args) }
   // Create a query builder with initial `or` set
-  static or (matches) { return this.__query ().or (matches) }
+  static or (...args) { return this.__query ().or (...args) }
   // Create a query builder with initial `and` set
-  static and (matches) { return this.__query ().and (matches) }
+  static and (...args) { return this.__query ().and (...args) }
   // Create a query builder with initial `gt` set
-  static gt (key, min) { return this.__query ().gt (key, min) }
+  static gt (...args) { return this.__query ().gt (...args) }
   // Create a query builder with initial `lt` set
-  static lt (key, max) { return this.__query ().lt (key, max) }
+  static lt (...args) { return this.__query ().lt (...args) }
   // Create a query builder with initial `gte` set
-  static gte (key, min) { return this.__query ().gte (key, min) }
+  static gte (...args) { return this.__query ().gte (...args) }
   // Create a query builder with initial `lte` set
-  static lte (key, max) { return this.__query ().lte (key, max) }
+  static lte (...args) { return this.__query ().lte (...args) }
 }
 
 // Exports
