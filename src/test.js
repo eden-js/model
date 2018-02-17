@@ -5,179 +5,451 @@ const { Db, DbModel, plugs: { RethinkPlug, MongoPlug } } = require ('./index');
 const rethinkPlug = new RethinkPlug ({ host: 'localhost', port: 28015, db: 'test', });
 const mongoPlug = new MongoPlug ({ url: 'mongodb://localhost:27017/', db: 'test' });
 
-async function testQueryExists (query, ignores = []) {
-	if (ignores.indexOf ('count') === -1) {
-		const modelCount = await query.count ();
-		assert.strictEqual (modelCount, 1);
+async function testQueryActions (opts) {
+	opts.ignores     = opts.ignores || [];
+	opts.checkValues = opts.checkValues || true;
+	opts.checkOrder  = opts.checkOrder || false;
+
+	if (opts.ignores.indexOf ('count') === -1) {
+		const modelCount = await opts.query.count ();
+		assert.strictEqual (modelCount, opts.models.length, 'Count of models is wrong');
 	}
 
-	if (ignores.indexOf ('find') === -1) {
-		const models = await query.find ();
-		assert.isArray (models);
-		assert.lengthOf (models, 1);
+	if (opts.ignores.indexOf ('find') === -1) {
+		const models = await opts.query.find ();
+		assert.isArray (models, 'Return from find is not an array');
+
+		if (opts.checkValues) {
+			const modelsData = models.map (model => model.get ());
+
+			if (opts.checkOrder) {
+				assert.deepEqual (modelsData, opts.models, 'Found models are not the same as expected models')
+			} else {
+				assert.sameDeepMembers (modelsData, opts.models, 'Found models are not the same as expected');
+			}
+		} else {
+			assert.lengthOf (models, opts.models.length);
+		}
 	}
 
-	if (ignores.indexOf ('sum') === -1) {
-		const modelSum = await query.sum ('val');
-		assert.strictEqual (modelSum, 1);
+	if (opts.ignores.indexOf ('sum') === -1) {
+		const modelSum = await opts.query.sum ('val');
+		assert.strictEqual (modelSum, opts.models.length, 'Sum of fetched model\'s `val` is the wrong amount');
 	}
 
-	if (ignores.indexOf ('findOne') === -1) {
-		const model = await query.findOne ();
-		assert.isNotNull (model);
+	if (opts.ignores.indexOf ('findOne') === -1) {
+		const model = await opts.query.findOne ();
+
+		if (opts.models.length > 0) {
+			assert.isNotNull (model, 'Single model request returned null, expected model');
+
+			if (opts.checkValues) {
+				if (opts.checkOrder) {
+					assert.deepEqual (model.get (), opts.models[0]);
+				} else {
+					// For lack of a better method?
+					assert.includeDeepMembers (opts.models, [model.get ()], 'Found single model matched none of the expected');
+				}
+			}
+		} else {
+			assert.isNull (model, 'Single model request returned model, expected null');
+		}
 	}
 }
 
-async function testQueryNotExists (query, ignores = []) {
-	if (ignores.indexOf ('count') === -1) {
-		const modelCount = await query.count ();
-		assert.strictEqual (modelCount, 0);
+async function testSimpleQuery (opts) {
+	await opts.Model.remove ({});
+
+	for (const entriesArr of [opts.testMatches, opts.testMatchEntries, opts.testNotMatchEntries]) {
+		if (entriesArr == null) continue;
+
+		for (const entry of entriesArr) {
+			entry.val = 1;
+		}
 	}
 
-	if (ignores.indexOf ('find') === -1) {
-		const models = await query.find ();
-		assert.isArray (models);
-		assert.lengthOf (models, 0);
+	if (opts.testNotMatchEntries.length > 0) {
+		await Promise.all (opts.testNotMatchEntries.map (async (testEntry) => {
+			await (new opts.Model (testEntry)).save ();
+		}));
 	}
 
-	if (ignores.indexOf ('sum') === -1) {
-		const modelSum = await query.sum ('val');
-		assert.strictEqual (modelSum, 0);
-	}
+	await testQueryActions ({
+		ignores : opts.ignores,
+		query   : opts.query,
+		models  : [],
+	});
 
-	if (ignores.indexOf ('findOne') === -1) {
-		const model = await query.findOne ();
-		assert.isNull (model);
-	}
-}
-
-async function testQuery (Model, query, testMatchEntry, testNotMatchEntries, ignores = []) {
-	await Model.remove ({});
-
-	await Promise.all (testNotMatchEntries.map (async (testEntry) => {
-		await (new Model (testEntry)).save ();
+	await Promise.all (opts.testMatchEntries.map (async (testEntry) => {
+		await (new opts.Model (testEntry)).save ();
 	}));
 
-	await testQueryNotExists (query, ignores);
-
-	await (new Model (testMatchEntry)).save ();
-
-	await testQueryExists (query, ignores);
+	await testQueryActions ({
+		ignores     : opts.ignores,
+		query       : opts.query,
+		models      : opts.testMatches || opts.testMatchEntries,
+		checkValues : opts.checkValues,
+		checkOrder  : opts.checkOrder,
+	});
 }
 
 async function testWhere (Model) {
 	console.log ('- Testing where');
-	const query = Model.where ({ a: 1 });
-	await testQuery (Model, query, { val: 1, a: 1 }, [
-		{ val: 1, a: 2 },
-		{ val: 1, a: { x: 1 } },
-		// { val: 1, a: [1] },
-	]);
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.where ({ a: 1 }),
+		testMatchEntries    : [
+			{ a: 1 },
+		],
+		testNotMatchEntries : [
+			{ a: 2 },
+			{ a: { x: 1 } },
+			// { a: [1] },
+		],
+	});
 }
 
 async function testDeepWhere (Model) {
 	console.log ('- Testing deep where');
-	const query = Model.where ({ a: { x: 1 } });
-	await testQuery (Model, query, { val: 1, a: { x: 1 } }, [
-		{ val: 1, a: { x: 2 } },
-		// { val: 1, a: 1 },
-		// { val: 1, a: [1] },
-	]);
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.where ({ a: { x: 1 } }),
+		testMatchEntries    : [
+			{ a: { x: 1 } },
+		],
+		testNotMatchEntries : [
+			{ a: { x: 2 } },
+			// { a: 1 },
+			// { a: [1] },
+		],
+	});
 }
 
 async function testElemVal (Model) {
 	console.log ('- Testing elem val');
-	const query = Model.elem ("things", 1);
-	await testQuery (Model, query, { val: 1, things: [1] }, [
-		{ val: 1, things: [2] },
-		{ val: 1, things: [{ x: 1 }] },
-		// { val: 1, things: 1 }
-		// { val: 1, things: { x: 1 } }
-	], ["sum"]);
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.elem ('a', 1),
+		ignores             : ['sum'],
+		testMatchEntries    : [
+			{ a: [2, 1, 3] },
+			{ a: [3, 1, 2] },
+		],
+		testNotMatchEntries : [
+			{ a: [2, 3, 4] },
+			{ a: [4, 3, 2] },
+			{ a: [{ x: 1 }] },
+			// { a: 1 }
+			// { a: { x: 1 } }
+		],
+	});
 }
 
 async function testElemObj (Model) {
 	console.log ('- Testing elem obj');
-	const query = Model.elem ("things", { x: 1 });
-	await testQuery (Model, query, { val: 1, things: [{ x: 1 }] }, [
-		{ val: 1, things: [{ x: 2 }] },
-		{ val: 1, a: 1 },
-		{ val: 1, a: { x: 1 } },
-	], ["sum"]);
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.elem ('a', { x: 1 }),
+		ignores             : ['sum'],
+		testMatchEntries    : [
+			{ a: [{ x: 1 }, { x: 2 }] },
+		],
+		testNotMatchEntries : [
+			{ a: [{ x: 2 }] },
+			// { a: 1 },
+			// { a: { x: 1 } },
+			// { a: [1] },
+		],
+	});
 }
 
 async function testLt (Model) {
 	console.log ('- Testing lt');
-	const query = Model.lt ("a", 2);
-	await testQuery (Model, query, { val: 1, a: 1 }, [
-		{ val: 1, a: 2 },
-		{ val: 1, a: 3 },
-		{ val: 1, a: { x: 1 } },
-		// { val: 1, a: [{ x: 1 }] },
-		// { val: 1, a: [1] },
-	]);
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.lt ('a', 100),
+		testMatchEntries    : [
+			{ a: 99 },
+			{ a: -1 },
+		],
+		testNotMatchEntries : [
+			{ a: 101 },
+			{ a: 500 },
+			{ a: { x: 1 } },
+			// { a: [{ x: 1 }] },
+			// { a: [1] },
+		],
+	});
 }
 
 async function testGt (Model) {
 	console.log ('- Testing gt');
-	const query = Model.gt ("a", 2);
-	await testQuery (Model, query, { val: 1, a: 3 }, [
-		{ val: 1, a: 2 },
-		{ val: 1, a: 1 },
-		// { val: 1, a: { x: 1 } },
-		{ val: 1, a: [{ x: 1 }] },
-		{ val: 1, a: [2] },
-	]);
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.gt ('a', 100),
+		testMatchEntries    : [
+			{ a: 101 },
+			{ a: 500 },
+		],
+		testNotMatchEntries : [
+			{ a: 99 },
+			{ a: -1 },
+			{ a: [{ x: 1 }] },
+			{ a: [2] },
+			// { a: { x: 1 } },
+		],
+	});
 }
 
 async function testLte (Model) {
 	console.log ('- Testing lte');
-	const query = Model.lte ("a", 2);
-	await testQuery (Model, query, { val: 1, a: 2 }, [
-		{ val: 1, a: 3 },
-		{ val: 1, a: { x: 1 } },
-		// { val: 1, a: [{ x: 1 }] },
-		// { val: 1, a: [2] },
-	]);
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.lte ('a', 100),
+		testMatchEntries    : [
+			{ a: 100 },
+			{ a: 99 },
+			{ a: -1 },
+		],
+		testNotMatchEntries : [
+			{ a: 101 },
+			{ a: 500 },
+			{ a: { x: 1 } },
+			// { a: [{ x: 100 }] },
+			// { a: [100] },
+		],
+	});
 }
 
 async function testGte (Model) {
 	console.log ('- Testing gte');
-	const query = Model.gte ("a", 2);
-	await testQuery (Model, query, { val: 1, a: 2 }, [
-		{ val: 1, a: 1 },
-		// { val: 1, a: { x: 1 } },
-		// { val: 1, a: [{ x: 1 }] },
-		// { val: 1, a: [1] },
-	]);
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.gte ('a', 100),
+		testMatchEntries    : [
+			{ a: 100 },
+			{ a: 101 },
+			{ a: 500 },
+		],
+		testNotMatchEntries : [
+			{ a: 99 },
+			{ a: -1 },
+			{ a: [{ x: 100 }] },
+			// { a: { x: 100 } },
+			// { a: [100] },
+		],
+	});
 }
 
 async function testNe (Model) {
 	console.log ('- Testing ne');
-	const query = Model.ne ("a", 1);
-	await testQuery (Model, query, { val: 1, a: { x: 1 } }, [
-		{ val: 1, a: 1 },
-	]);
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.ne ('a', 1),
+		testMatchEntries    : [
+			{ a: 2 },
+			{ a: { x: 1 } },
+			{ a: [{ x: 1 }] },
+			// { a: [1] },
+		],
+		testNotMatchEntries : [
+			{ a: 1 },
+		],
+	});
+}
+
+async function testMatch (Model) {
+	console.log ('- Testing match');
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.match ('a', /^[Ww][aoe]+w( lad)?$/),
+		testMatchEntries    : [
+			{ a: 'wew lad' },
+			{ a: 'Weeeeew' },
+			{ a: 'waaaw lad' },
+		],
+		testNotMatchEntries : [
+			{ a: 'wewee' },
+			{ a: 'WEW LAD' },
+			{ a: 'wAw' },
+		],
+	});
+}
+
+async function testOr (Model) {
+	console.log ('- Testing or');
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.or ({ a: 1 }, { b: 2 }),
+		ignores             : ['sum'],
+		testMatchEntries    : [
+			{ a: 1 },
+			{ b: 2 },
+		],
+		testNotMatchEntries : [
+			{ a: 3 },
+			{ a: { x: 1 } },
+			{ a: [{ x: 1 }] },
+			// { a: [1] },
+		],
+	});
+}
+
+async function testAnd (Model) {
+	console.log ('- Testing and');
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.and ({ a: 1 }, { b: 2 }),
+		ignores             : ['sum'],
+		testMatchEntries    : [
+			{ a: 1, b: 2 },
+		],
+		testNotMatchEntries : [
+			{ a: 1, b: 3 },
+			{ a: 2, b: 2 },
+			{ a: { x: 1 } },
+			{ a: [{ x: 1 }] },
+			// { a: [1] },
+		],
+	});
+}
+
+async function testLimit (Model) {
+	console.log ('- Testing limit');
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.limit (2),
+		testMatches         : [{ }, { }],
+		testMatchEntries    : [
+			{ },
+			{ },
+			{ },
+			{ },
+		],
+		testNotMatchEntries : [],
+	});
+}
+
+async function testSort (Model) {
+	console.log ('- Testing sort');
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.sort ('a'),
+		checkOrder          : true,
+		testMatches         : [
+			{ a: 5 },
+			{ a: 4 },
+			{ a: 3 },
+			{ a: 2 },
+			{ a: 1 },
+		],
+		testMatchEntries    : [
+			{ a: 2 },
+			{ a: 4 },
+			{ a: 1 },
+			{ a: 5 },
+			{ a: 3 },
+		],
+		testNotMatchEntries : [],
+	});
+}
+
+async function testSortSkip (Model) {
+	console.log ('- Testing sort-skip');
+	await testSimpleQuery ({
+		Model: Model,
+		query               : Model.sort ('a').skip (1),
+		checkOrder          : true,
+		testMatches         : [
+			{ a: 4 },
+			{ a: 3 },
+			{ a: 2 },
+			{ a: 1 },
+		],
+		testMatchEntries    : [
+			{ a: 2 },
+			{ a: 4 },
+			{ a: 1 },
+			{ a: 5 },
+			{ a: 3 },
+		],
+		testNotMatchEntries : [],
+	});
+}
+
+function testGetSet (Model) {
+	console.log ('- Testing get/set');
+	const model = new Model ({ a: 1, b: { a: 2 } });
+
+	assert.strictEqual (model.get ('a'), 1, 'Model data should initially have `a` be 1');
+	assert.strictEqual (model.get ().a, 1, 'Full model data should initially have `a` be 1');
+	assert.strictEqual (model.get ('b.a'), 2, 'Model data should initially have `b.a` be 2');
+	assert.strictEqual (model.get ('b').a, 2, 'Full `b` model data should initially have `a` be 2');
+	assert.strictEqual (model.get ().b.a, 2, 'Full model data should initially have `b.a` be 2');
+
+	model.set ('a', 2);
+	model.set ('b.a', 1);
+
+	assert.strictEqual (model.get ('a'), 2, 'Model data should now have `a` be 2');
+	assert.strictEqual (model.get ().a, 2, 'Full model data should now have `a` be 2');
+	assert.strictEqual (model.get ('b.a'), 1, 'Model data should now have `b.a` be 1');
+	assert.strictEqual (model.get ('b').a, 1, 'Full `b` model data should now have `a` be 1');
+	assert.strictEqual (model.get ().b.a, 1, 'Full model data should now have `b.a` be 1');
+}
+
+async function testModel (Model) {
+	console.log ('- Testing model storage');
+
+	await Model.remove ({});
+
+	const model = new Model ({ a: 1 });
+
+	assert.isNull (await Model.findOne (), 'findOne returned model data when none should exist');
+	assert.lengthOf (await Model.find (), 0, 'find returned a non empty array of model data when none should exist');
+
+	await model.save ();
+
+	const model2 = await Model.findOne ();
+
+	assert.isNotNull (model2, 'findOne returned null when model data should exist');
+	assert.lengthOf (await Model.find (), 1, 'find returned an empty array when model data should exist');
+
+	assert.strictEqual (model.get ('a'), 1);
+	assert.strictEqual (model2.get ('a'), 1);
+
+	model.set ('a', 2);
+	await model.save ();
+	await model2.refresh ();
+
+	assert.strictEqual (model.get ('a'), 2);
+	assert.strictEqual (model2.get ('a'), 2);
 }
 
 async function test (plug) {
 	const db = new Db (plug);
 
-	class TestModel extends DbModel {}
-	await db.register (TestModel);
+	class Model extends DbModel {}
+	await db.register (Model);
 
-	let foundModels = [];
-	let modelCount = [];
+	testGetSet (Model);
 
-	await testWhere (TestModel);
-	await testDeepWhere (TestModel);
-	await testElemVal (TestModel);
-	await testElemObj (TestModel);
-	await testLt (TestModel);
-	await testGt (TestModel);
-	await testLte (TestModel);
-	await testGte (TestModel);
-	await testNe (TestModel);
+	await testModel (Model);
+
+	await testWhere (Model);
+	await testDeepWhere (Model);
+	await testElemVal (Model);
+	await testElemObj (Model);
+	await testLt (Model);
+	await testGt (Model);
+	await testLte (Model);
+	await testGte (Model);
+	await testNe (Model);
+	await testMatch (Model);
+	await testOr (Model);
+	await testAnd (Model);
+	await testLimit (Model);
+	await testSort (Model);
+	await testSortSkip (Model);
 }
 
 ;(async () => {
