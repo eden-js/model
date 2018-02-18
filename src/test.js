@@ -263,6 +263,27 @@ async function testNe (Model) {
 	});
 }
 
+async function testNin (Model) {
+	console.log ('- Testing nin');
+	await testSimpleQuery ({
+		Model               : Model,
+		query               : Model.nin ('a', ['a', 'b']),
+		testMatchEntries    : [
+			{ a: 'c' },
+			{ a: { x: 'a' } },
+			{ a: { x: 'b' } },
+			{ a: [{ x: 'a' }] },
+			{ a: [{ x: 'b' }] },
+			// { a: ['a'] },
+			// { a: ['b'] },
+		],
+		testNotMatchEntries : [
+			{ a: 'a' },
+			{ a: 'b' },
+		],
+	});
+}
+
 async function testMatch (Model) {
 	console.log ('- Testing match');
 	await testSimpleQuery ({
@@ -449,6 +470,7 @@ async function test (plug) {
 	await testLte (Model);
 	await testGte (Model);
 	await testNe (Model);
+	await testNin (Model);
 	await testMatch (Model);
 	await testOr (Model);
 	await testAnd (Model);

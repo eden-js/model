@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /**
  * Query builder class
@@ -30,6 +30,7 @@ class DbQuery {
     this.where = this.where.bind (this);
     this.match = this.match.bind (this);
     this.ne    = this.ne.bind (this);
+    this.nin   = this.nin.bind (this);
     this.or    = this.or.bind (this);
     this.and   = this.and.bind (this);
 
@@ -46,7 +47,7 @@ class DbQuery {
    */
   limit (amt) {
     // Push query part for `limit` and return self
-    this.pts.push ({ type: "limit", limitAmount: amt });
+    this.pts.push ({ type: 'limit', limitAmount: amt });
     return this;
   }
 
@@ -55,7 +56,7 @@ class DbQuery {
    */
   elem (arrKey, filter) {
     // Push query part for `elem` and return self
-    this.pts.push ({ type: "elem", arrKey: arrKey, filter: filter });
+    this.pts.push ({ type: 'elem', arrKey: arrKey, filter: filter });
     return this;
   }
 
@@ -64,14 +65,14 @@ class DbQuery {
    */
   skip (amt) {
     // Push query part for `skip` and return self
-    this.pts.push ({ type: "skip", skipAmount: amt });
+    this.pts.push ({ type: 'skip', skipAmount: amt });
     return this;
   }
 
   /**
    * Sort returned Model instances by a key and optional direction (default descending)
    */
-  sort (key, directionStr = "desc") {
+  sort (key, directionStr = 'desc') {
     // Ensure directionStr is a String value
     directionStr = directionStr.toString ();
 
@@ -79,19 +80,19 @@ class DbQuery {
     let desc = null;
 
     // Parse directionStr into value to apply to `desc`
-    if (directionStr === "1" || directionStr === "asc" || directionStr === "ascending") {
+    if (directionStr === '1' || directionStr === 'asc' || directionStr === 'ascending') {
       // Sort by ascending
       desc = false;
-    } else if (directionStr === "-1" || directionStr === "desc" || directionStr === "descending") {
+    } else if (directionStr === '-1' || directionStr === 'desc' || directionStr === 'descending') {
       // Sort by descending
       desc = true;
     } else {
       // directionStr is unparseable, so throw error
-      throw new Error ("Invalid sort value");
+      throw new Error ('Invalid sort value');
     }
 
     // Push query part for `sort` and return self
-    this.pts.push ({ type: "sort", sortKey: key, desc: desc });
+    this.pts.push ({ type: 'sort', sortKey: key, desc: desc });
     return this;
   }
 
@@ -104,12 +105,12 @@ class DbQuery {
       // Handle arg
       const filter = key;
       // Push query part for `filter` and return self
-      this.pts.push ({ type: "filter", filter: filter });
+      this.pts.push ({ type: 'filter', filter: filter });
       return this;
     }
 
     // Push query part for `filter` and return self
-    this.pts.push ({ type: "filter", filter: { [key]: value } });
+    this.pts.push ({ type: 'filter', filter: { [key]: value } });
     return this;
   }
 
@@ -118,7 +119,16 @@ class DbQuery {
    */
   ne (key, value) {
     // Push query part for `ne` and return self
-    this.pts.push ({ type: "ne", val: value, key: key });
+    this.pts.push ({ type: 'ne', val: value, key: key });
+    return this;
+  }
+
+  /**
+   * Filter only Model instances where the specified keys do not match the specified val
+   */
+  nin (key, values) {
+    // Push query part for `nin` and return self
+    this.pts.push ({ type: 'nin', vals: values, key: key });
     return this;
   }
 
@@ -134,7 +144,7 @@ class DbQuery {
    */
   or (...matches) {
     // Push query part for `whereOr` and return self
-    this.pts.push ({ type: "whereOr", matches: matches });
+    this.pts.push ({ type: 'whereOr', matches: matches });
     return this;
   }
 
@@ -144,7 +154,7 @@ class DbQuery {
    */
   and (...matches) {
     // Push query part for `whereAnd` and return self
-    this.pts.push ({ type: "whereAnd", matches: matches });
+    this.pts.push ({ type: 'whereAnd', matches: matches });
     return this;
   }
 
@@ -153,7 +163,7 @@ class DbQuery {
    */
   gt (key, min) {
     // Push query part for `gt` and return self
-    this.pts.push ({ type: "gt", min: min, key: key });
+    this.pts.push ({ type: 'gt', min: min, key: key });
     return this;
   }
 
@@ -162,7 +172,7 @@ class DbQuery {
    */
   lt (key, max) {
     // Push query part for `lt` and return self
-    this.pts.push ({ type: "lt", max: max, key: key });
+    this.pts.push ({ type: 'lt', max: max, key: key });
     return this;
   }
 
@@ -171,7 +181,7 @@ class DbQuery {
    */
   gte (key, min) {
     // Push query part for `gte` and return self
-    this.pts.push ({ type: "gte", min: min, key: key });
+    this.pts.push ({ type: 'gte', min: min, key: key });
     return this;
   }
 
@@ -180,7 +190,7 @@ class DbQuery {
    */
   lte (key, max) {
     // Push query part for `lte` and return self
-    this.pts.push ({ type: "lte", max: max, key: key });
+    this.pts.push ({ type: 'lte', max: max, key: key });
     return this;
   }
 

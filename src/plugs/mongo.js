@@ -134,6 +134,9 @@ class MongoPlug extends DbPlug {
           // Apply supplied negative to `where` and `ne` cursor method
           cursor = cursor.where (queryPt.key).ne (queryPt.val);
         }
+      } else if (queryPt.type === 'nin') {
+        // Apply supplied values array to `where` and `nin` cursor method
+        cursor = cursor.where (queryPt.key).nin (queryPt.vals);
       } else if (queryPt.type === 'whereOr') {
         // Apply supplied matches array to `or` cursor method
         cursor = cursor.or (queryPt.matches);

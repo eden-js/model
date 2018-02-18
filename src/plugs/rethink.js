@@ -347,6 +347,12 @@ class RethinkPlug extends DbPlug {
       } else if (queryPt.type === 'ne') {
         // Add a custom filter method to the cursor
         cursor = cursor.filter (dotPropRethinkKey (queryPt.key).default (null).ne (queryPt.val));
+      } else if (queryPt.type === 'nin') {
+        // Add a custom filter method to the cursor
+        // TODO: use a lambda instead of multiple `ne`s
+        for (const val of queryPt.vals) {
+          cursor = cursor.filter (dotPropRethinkKey (queryPt.key).default (null).ne (val));
+        }
       } else if (queryPt.type === 'whereOr') {
         // Array for storing filter parts
         const orMatchFilters = [];
