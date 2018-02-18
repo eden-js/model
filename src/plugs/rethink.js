@@ -132,9 +132,6 @@ class RethinkPlug extends DbPlug {
     this._getTable       = this._getTable.bind (this);
     this._fetchDocs      = this._fetchDocs.bind (this);
     this._fetchDoc       = this._fetchDoc.bind (this);
-    this._count          = this._count.bind (this);
-    this._remove         = this._remove.bind (this);
-    this._insert         = this._insert.bind (this);
     this._handleRawModel = this._handleRawModel.bind (this);
 
     // Bind public methods to self
@@ -240,55 +237,6 @@ class RethinkPlug extends DbPlug {
 
     // Return only fetched doc
     return docs[0] || null;
-  }
-
-  /**
-   * Count docs by provided cursor
-   */
-  async _count (cursor) {
-    // Return executed count query using provided cursor
-    return await cursor.count ().run (this._rethinkConn);
-  }
-
-  /**
-   * Sum by provided cursor and field key
-   */
-  async _sum (cursor, key) {
-    // Return executed count query using provided cursor
-    return await cursor.sum (key).run (this._rethinkConn);
-  }
-
-  /**
-   * Remove docs by provided cursor
-   */
-  async _remove (cursor) {
-    // Execute delete query using provided cursor
-    return await cursor.delete ().run (this._rethinkConn);
-  }
-
-  /**
-   * Replace docs by provided cursor and replacement object
-   */
-  async _replace (table, newObject, id) {
-    // Create a copy of the provided object to avoid modifying original by reference
-    const insertObject = Object.assign ({}, newObject);
-
-    // Set `id` of the data to be the Model instance's db data ID
-    insertObject.id = id;
-
-    // Execute replace query using provided cursor and provided replacement object
-    await table.get (id).replace (insertObject).run (this._rethinkConn);
-  }
-
-  /**
-   * Insert provided doc object into provided table
-   */
-  async _insert (table, object) {
-    // Insert provided object data into provided table and get response
-    const insertRes = await table.insert (object).run (this._rethinkConn);
-
-    // Return Model ID from insertation response
-    return insertRes['generated_keys'][0];
   }
 
   /**
@@ -562,8 +510,8 @@ class RethinkPlug extends DbPlug {
     // Get table by provided collection ID
     const table = await this._getTable (collectionId);
 
-    // Construct cursor from provided query, and use it to fetch count of matching Model instance data
-    return await this._count (this._queryToCursor (table, query));
+    // Fetch count of matching Model instance data
+    return await this._queryToCursor (table, query).count ().run (this._rethinkConn);
   }
 
   /**
@@ -573,8 +521,8 @@ class RethinkPlug extends DbPlug {
     // Get table by provided collection ID
     const table = await this._getTable (collectionId);
 
-    // Construct cursor from provided query, and use it to fetch sum of matching Model instance data's matching fields
-    return await this._sum (this._queryToCursor (table, query), key)
+    // Fetch sum of matching Model instance data's matching fields
+    return await this._queryToCursor (table, query).sum (key).run (this._rethinkConn);
   }
 
   /**
@@ -588,7 +536,7 @@ class RethinkPlug extends DbPlug {
     const table = await this._getTable (collectionId);
 
     // Find and remove single Model instance data by provided ID
-    await this._remove (table.get (id));
+    await table.get (id).delete ().run (this._rethinkConn);
   }
 
   /**
@@ -602,7 +550,7 @@ class RethinkPlug extends DbPlug {
     const table = await this._getTable (collectionId);
 
     // Find and remove matching Model instance data by provided query
-    await this._remove (this._queryToCursor (table, query));
+    await this._queryToCursor (table, query).delete ().run (this._rethinkConn);
   }
 
   /**
@@ -615,8 +563,14 @@ class RethinkPlug extends DbPlug {
     // Get table by provided collection ID
     const table = await this._getTable (collectionId);
 
-    // Find and update Model instance data by provided ID and replacement object
-    await this._replace (table, swapKeys ('id', '_id', newObject), id);
+    // Swap the ID keys in the object before setting the ID
+    const swappedReplaceObject = swapKeys ('id', '_id', newObject);
+
+    // Set `id` of the data to be the Model instance's db data ID
+    swappedReplaceObject.id = id;
+
+    // Execute replace query using provided cursor and provided replacement object
+    await table.get (id).replace (swappedReplaceObject).run (this._rethinkConn);
   }
 
   /**
@@ -629,11 +583,11 @@ class RethinkPlug extends DbPlug {
     // Get table by provided collection ID
     const table = await this._getTable (collectionId);
 
-    // Insert Model instance data into database and get inserted ID
-    const id = this._insert (table, swapKeys ('id', '_id', object));
+    // Insert provided object data into provided table and get response
+    const insertRes = await table.insert (swapKeys ('id', '_id', object)).run (this._rethinkConn);
 
-    // Return ID of Model instance data in database
-    return id;
+    // Return Model ID from insertation response
+    return insertRes['generated_keys'][0];
   }
 }
 
