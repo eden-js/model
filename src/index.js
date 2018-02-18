@@ -50,7 +50,7 @@ module.exports = exports = {
   Db      : Db,
   DbModel : DbModel,
 
-  plugs: {
+  plugs   : {
     MongoPlug   : MongoPlug,
     RethinkPlug : RethinkPlug,
   },
