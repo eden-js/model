@@ -306,16 +306,21 @@ async function testOr (Model) {
 	console.log ('- Testing or');
 	await testSimpleQuery ({
 		Model               : Model,
-		query               : Model.or ({ a: 1 }, { b: 2 }),
+		query               : Model.or ({ a: 1, b: 2 }, { a: 2, b: 1 }),
 		ignores             : ['sum'],
 		testMatchEntries    : [
-			{ a: 1 },
-			{ b: 2 },
+			{ a: 1, b: 2 },
+			{ a: 2, b: 1 },
 		],
 		testNotMatchEntries : [
-			{ a: 3 },
-			{ a: { x: 1 } },
-			{ a: [{ x: 1 }] },
+			{ a: 1 },
+			{ b: 1 },
+			{ a: 2 },
+			{ b: 2 },
+			{ a: 2, b: 2 },
+			{ a: 1, b: 1 },
+			{ a: { a: 1 } },
+			{ a: [{ a: 1 }] },
 			// { a: [1] },
 		],
 	});
