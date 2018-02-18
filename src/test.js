@@ -96,7 +96,7 @@ async function testSimpleQuery (opts) {
 async function testWhere (Model) {
 	console.log ('- Testing where');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.where ({ a: 1 }),
 		testMatchEntries    : [
 			{ a: 1 },
@@ -112,7 +112,7 @@ async function testWhere (Model) {
 async function testDeepWhere (Model) {
 	console.log ('- Testing deep where');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.where ({ a: { x: 1 } }),
 		testMatchEntries    : [
 			{ a: { x: 1 } },
@@ -128,7 +128,7 @@ async function testDeepWhere (Model) {
 async function testElemVal (Model) {
 	console.log ('- Testing elem val');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.elem ('a', 1),
 		ignores             : ['sum'],
 		testMatchEntries    : [
@@ -148,7 +148,7 @@ async function testElemVal (Model) {
 async function testElemObj (Model) {
 	console.log ('- Testing elem obj');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.elem ('a', { x: 1 }),
 		ignores             : ['sum'],
 		testMatchEntries    : [
@@ -166,7 +166,7 @@ async function testElemObj (Model) {
 async function testLt (Model) {
 	console.log ('- Testing lt');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.lt ('a', 100),
 		testMatchEntries    : [
 			{ a: 99 },
@@ -185,7 +185,7 @@ async function testLt (Model) {
 async function testGt (Model) {
 	console.log ('- Testing gt');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.gt ('a', 100),
 		testMatchEntries    : [
 			{ a: 101 },
@@ -204,7 +204,7 @@ async function testGt (Model) {
 async function testLte (Model) {
 	console.log ('- Testing lte');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.lte ('a', 100),
 		testMatchEntries    : [
 			{ a: 100 },
@@ -224,7 +224,7 @@ async function testLte (Model) {
 async function testGte (Model) {
 	console.log ('- Testing gte');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.gte ('a', 100),
 		testMatchEntries    : [
 			{ a: 100 },
@@ -244,16 +244,21 @@ async function testGte (Model) {
 async function testNe (Model) {
 	console.log ('- Testing ne');
 	await testSimpleQuery ({
-		Model: Model,
-		query               : Model.ne ('a', 1),
+		Model               : Model,
+		// query               : Model.ne ('a', 'a').limit (100).ne ('a', 'b'),
+		query               : Model.ne ('a', 'a').ne ('a', 'b'),
 		testMatchEntries    : [
-			{ a: 2 },
-			{ a: { x: 1 } },
-			{ a: [{ x: 1 }] },
-			// { a: [1] },
+			{ a: 'c' },
+			{ a: { x: 'a' } },
+			{ a: { x: 'b' } },
+			{ a: [{ x: 'a' }] },
+			{ a: [{ x: 'b' }] },
+			// { a: ['a'] },
+			// { a: ['b'] },
 		],
 		testNotMatchEntries : [
-			{ a: 1 },
+			{ a: 'a' },
+			{ a: 'b' },
 		],
 	});
 }
@@ -261,7 +266,7 @@ async function testNe (Model) {
 async function testMatch (Model) {
 	console.log ('- Testing match');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.match ('a', /^[Ww][aoe]+w( lad)?$/),
 		testMatchEntries    : [
 			{ a: 'wew lad' },
@@ -279,7 +284,7 @@ async function testMatch (Model) {
 async function testOr (Model) {
 	console.log ('- Testing or');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.or ({ a: 1 }, { b: 2 }),
 		ignores             : ['sum'],
 		testMatchEntries    : [
@@ -298,7 +303,7 @@ async function testOr (Model) {
 async function testAnd (Model) {
 	console.log ('- Testing and');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.and ({ a: 1 }, { b: 2 }),
 		ignores             : ['sum'],
 		testMatchEntries    : [
@@ -317,7 +322,7 @@ async function testAnd (Model) {
 async function testLimit (Model) {
 	console.log ('- Testing limit');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.limit (2),
 		testMatches         : [{ }, { }],
 		testMatchEntries    : [
@@ -333,7 +338,7 @@ async function testLimit (Model) {
 async function testSort (Model) {
 	console.log ('- Testing sort');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.sort ('a'),
 		checkOrder          : true,
 		testMatches         : [
@@ -357,7 +362,7 @@ async function testSort (Model) {
 async function testSortSkip (Model) {
 	console.log ('- Testing sort-skip');
 	await testSimpleQuery ({
-		Model: Model,
+		Model               : Model,
 		query               : Model.sort ('a').skip (1),
 		checkOrder          : true,
 		testMatches         : [

@@ -92,8 +92,10 @@ class MongoPlug extends DbPlug {
    * Convert a standard constructed query to an MQuery cursor
    */
   _queryToCursor (cursor, query) {
+    let neBuf = [];
+
     // Iterate over all parts of the query
-    for (const queryPt of query.pts) {
+    for (const [queryPtKey, queryPt] of query.pts.entries ()) {
       if (queryPt.type === 'filter') {
         const filter = Object.assign ({}, queryPt.filter);
 
@@ -121,8 +123,17 @@ class MongoPlug extends DbPlug {
           cursor = cursor.where (queryPt.arrKey).elemMatch (queryPt.filter);
         }
       } else if (queryPt.type === 'ne') {
-        // Apply supplied matches array to `where` and `ne` cursor method
-        cursor = cursor.where (queryPt.key).ne (queryPt.val);
+        const nextPt = query.pts[queryPtKey + 1];
+        if (nextPt != null && nextPt.type === 'ne' && nextPt.key === queryPt.key) {
+          neBuf.push (queryPt.val);
+        } else if (neBuf.length > 0) {
+          // Apply supplied negative match and previous matches array to `where` and `nin` cursor method
+          cursor = cursor.where (queryPt.key).nin ([...neBuf, queryPt.val]);
+          neBuf = [];
+        } else {
+          // Apply supplied negative to `where` and `ne` cursor method
+          cursor = cursor.where (queryPt.key).ne (queryPt.val);
+        }
       } else if (queryPt.type === 'whereOr') {
         // Apply supplied matches array to `or` cursor method
         cursor = cursor.or (queryPt.matches);
