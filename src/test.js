@@ -1,9 +1,12 @@
+const MONGO_URL = process.env.MONGO_URL || 'localhost:27017';
+const RETHINK_URL = process.env.RETHINK_URL || 'localhost:28015';
+
 const assert  = require ('chai').assert;
 
 const { Db, DbModel, plugs: { RethinkPlug, MongoPlug } } = require ('./index');
 
-const rethinkPlug = new RethinkPlug ({ host: 'localhost', port: 28015, db: 'test', });
-const mongoPlug = new MongoPlug ({ url: 'mongodb://localhost:27017/', db: 'test' });
+const rethinkPlug = new RethinkPlug ({ host: RETHINK_URL.split (':')[0], port: RETHINK_URL.split (':')[1], db: 'test', });
+const mongoPlug = new MongoPlug ({ url: `mongodb://${MONGO_URL}/`, db: 'test' });
 
 async function testQueryActions (opts) {
 	opts.ignores     = opts.ignores || [];
