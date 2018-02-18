@@ -279,19 +279,6 @@ class RethinkPlug extends DbPlug {
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
         cursor = cursor.filter (deepMatch (queryPt.filter));
-        // const flatFilter = flatifyObj (queryPt.filter);
-        //
-        //
-        // for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
-        //   // If value data is a RegExp match, handle seperately
-        //   if (filterVal instanceof RegExp) {
-        //     // Create rethinkdb-friendly regex string and apply to new match part
-        //     const regexString = regexToGoodString (filterVal).toString ();
-        //     cursor = cursor.filter (dotPropRethinkKey (filterKey).match (regexString));
-        //   } else {
-        //     cursor = cursor.filter (dotPropRethinkKey (filterKey).default (null).eq (filterVal))
-        //   }
-        // }
       } else if (queryPt.type === 'elem') {
         // Apply `filter` method to cursor to filter out models that do not have array elements matching filter
         cursor = cursor.filter (dotPropRethinkKey (queryPt.arrKey).contains ((elem) => {
