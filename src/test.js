@@ -7,7 +7,6 @@ const mongoPlug = new MongoPlug ({ url: 'mongodb://localhost:27017/', db: 'test'
 
 async function testQueryActions (opts) {
 	opts.ignores     = opts.ignores || [];
-	opts.checkValues = opts.checkValues || true;
 	opts.checkOrder  = opts.checkOrder || false;
 
 	if (opts.ignores.indexOf ('count') === -1) {
@@ -19,16 +18,12 @@ async function testQueryActions (opts) {
 		const models = await opts.query.find ();
 		assert.isArray (models, 'Return from find is not an array');
 
-		if (opts.checkValues) {
-			const modelsData = models.map (model => model.get ());
+		const modelsData = models.map (model => model.get ());
 
-			if (opts.checkOrder) {
-				assert.deepEqual (modelsData, opts.models, 'Found models are not the same as expected models')
-			} else {
-				assert.sameDeepMembers (modelsData, opts.models, 'Found models are not the same as expected');
-			}
+		if (opts.checkOrder) {
+			assert.deepEqual (modelsData, opts.models, 'Found models are not the same as expected models')
 		} else {
-			assert.lengthOf (models, opts.models.length);
+			assert.sameDeepMembers (modelsData, opts.models, 'Found models are not the same as expected');
 		}
 	}
 
@@ -43,13 +38,11 @@ async function testQueryActions (opts) {
 		if (opts.models.length > 0) {
 			assert.isNotNull (model, 'Single model request returned null, expected model');
 
-			if (opts.checkValues) {
-				if (opts.checkOrder) {
-					assert.deepEqual (model.get (), opts.models[0]);
-				} else {
-					// For lack of a better method?
-					assert.includeDeepMembers (opts.models, [model.get ()], 'Found single model matched none of the expected');
-				}
+			if (opts.checkOrder) {
+				assert.deepEqual (model.get (), opts.models[0]);
+			} else {
+				// For lack of a better method?
+				assert.includeDeepMembers (opts.models, [model.get ()], 'Found single model matched none of the expected');
 			}
 		} else {
 			assert.isNull (model, 'Single model request returned model, expected null');
@@ -88,7 +81,6 @@ async function testSimpleQuery (opts) {
 		ignores     : opts.ignores,
 		query       : opts.query,
 		models      : opts.testMatches || opts.testMatchEntries,
-		checkValues : opts.checkValues,
 		checkOrder  : opts.checkOrder,
 	});
 }
