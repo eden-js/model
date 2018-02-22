@@ -241,7 +241,7 @@ async function testNe (Model) {
 	await testSimpleQuery ({
 		Model               : Model,
 		// query               : Model.ne ('a', 'a').limit (100).ne ('a', 'b'),
-		query               : Model.ne ('a', 'a').ne ('a', 'b'),
+		query               : Model.ne ('a', 'a').ne ('a', 'b').ne ('c', true),
 		testMatchEntries    : [
 			{ a: 'c' },
 			{ a: { x: 'a' } },
@@ -254,6 +254,7 @@ async function testNe (Model) {
 		testNotMatchEntries : [
 			{ a: 'a' },
 			{ a: 'b' },
+			{ a: 'c', c: true },
 		],
 	});
 }
@@ -275,6 +276,27 @@ async function testNin (Model) {
 		testNotMatchEntries : [
 			{ a: 'a' },
 			{ a: 'b' },
+		],
+	});
+}
+
+async function testIn (Model) {
+	console.log ('- Testing in');
+	await testSimpleQuery ({
+		Model               : Model,
+		query               : Model.in ('a', ['a', 'b']),
+		testMatchEntries    : [
+			{ a: 'a' },
+			{ a: 'b' },
+		],
+		testNotMatchEntries : [
+			{ a: 'c' },
+			{ a: { x: 'a' } },
+			{ a: { x: 'b' } },
+			{ a: [{ x: 'a' }] },
+			{ a: [{ x: 'b' }] },
+			// { a: ['a'] },
+			// { a: ['b'] },
 		],
 	});
 }
@@ -301,13 +323,16 @@ async function testOr (Model) {
 	console.log ('- Testing or');
 	await testSimpleQuery ({
 		Model               : Model,
-		query               : Model.or ({ a: 1, b: 2 }, { a: 2, b: 1 }),
+		query               : Model.or ({ a: 1, b: 2 }, { a: 2, b: 1 }, { c: 'a' }, { c: 'b' }),
 		ignores             : ['sum'],
 		testMatchEntries    : [
 			{ a: 1, b: 2 },
 			{ a: 2, b: 1 },
+			{ a: 1, b: 1, c: 'a' },
+			{ a: 1, b: 1, c: 'b' },
 		],
 		testNotMatchEntries : [
+			{ c: 'c' },
 			{ a: 1 },
 			{ b: 1 },
 			{ a: 2 },
@@ -471,6 +496,7 @@ async function test (plug) {
 	await testGte (Model);
 	await testNe (Model);
 	await testNin (Model);
+	await testIn (Model);
 	await testMatch (Model);
 	await testOr (Model);
 	await testAnd (Model);

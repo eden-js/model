@@ -239,6 +239,8 @@ class DbModel {
   static ne (...args) { return this.__query ().ne (...args) }
   // Create a query builder with initial `nin` set
   static nin (...args) { return this.__query ().nin (...args) }
+  // Create a query builder with initial `in` set
+  static in (...args) { return this.__query ().in (...args) }
   // Create a query builder with initial `match` set
   static match (...args) { return this.__query ().match (...args) }
   // Create a query builder with initial `or` set

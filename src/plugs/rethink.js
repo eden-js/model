@@ -297,6 +297,24 @@ class RethinkPlug extends DbPlug {
         for (const val of queryPt.vals) {
           cursor = cursor.filter (dotPropRethinkKey (queryPt.key).default (null).ne (val));
         }
+      } else if (queryPt.type === 'in') {
+        const inMatchFilters = [];
+
+        // Add a custom filter method to the cursor
+        // TODO: use a lambda instead of multiple `eq`s
+        for (const val of queryPt.vals) {
+          inMatchFilters.push (deepMatch ({ [queryPt.key]: val }));
+        }
+
+        if (inMatchFilters.length === 0) {
+          // If no filters, do nothing
+        } else if (inMatchFilters.length === 1) {
+          // If 1 filter, provide as only filter
+          cursor = cursor.filter (inMatchFilters[0]);
+        } else if (inMatchFilters.length) {
+          // If 2 or more filters, use all as `or` arguments to use in filter
+          cursor = cursor.filter (R.or (...inMatchFilters));
+        }
       } else if (queryPt.type === 'whereOr') {
         // Iterate query part possible match objects to make RethinkDB ready filters
         const orMatchFilters = queryPt.matches.map (match => deepMatch (match));

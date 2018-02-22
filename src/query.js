@@ -31,6 +31,7 @@ class DbQuery {
     this.match = this.match.bind (this);
     this.ne    = this.ne.bind (this);
     this.nin   = this.nin.bind (this);
+    this.in    = this.in.bind (this);
     this.or    = this.or.bind (this);
     this.and   = this.and.bind (this);
 
@@ -129,6 +130,15 @@ class DbQuery {
   nin (key, values) {
     // Push query part for `nin` and return self
     this.pts.push ({ type: 'nin', vals: values, key: key });
+    return this;
+  }
+
+  /**
+   * Filter only Model instances where the specified keys match the specified val
+   */
+  in (key, values) {
+    // Push query part for `in` and return self
+    this.pts.push ({ type: 'in', vals: values, key: key });
     return this;
   }
 
