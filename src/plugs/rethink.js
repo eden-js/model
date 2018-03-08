@@ -146,6 +146,8 @@ class RethinkPlug extends DbPlug {
   constructor (config) {
     super ();
 
+    this._indexes = new Map ();
+
     // Store map of promises that resolve when table is ready
     this._preparedTables = new Map ();
 
@@ -192,9 +194,11 @@ class RethinkPlug extends DbPlug {
   /**
    * Prepare database for new collection of provided collection ID
    */
-  async initCollection (collectionId) {
+  async initCollection (collectionId, indexes = new Set ()) {
     // If this collection has already been initiated, ignore
     if (this._preparedTables.has (collectionId)) return;
+
+    this._indexes.set (collectionId, indexes);
 
     await this._building;
 
@@ -205,6 +209,16 @@ class RethinkPlug extends DbPlug {
       if (!tableExists) {
         await R.tableCreate (collectionId).run (this._rethinkConn);
       }
+
+      await R.table (collectionId).wait ().run (this._rethinkConn);
+
+      await Promise.all (Array.from (indexes.values ()).map (async (indexKey) => {
+        try {
+          await R.table (collectionId).indexCreate (indexKey).run (this._rethinkConn);
+        } catch (err) { }
+        
+        await R.table (collectionId).indexWait (indexKey).run (this._rethinkConn);
+      }));
     }) ());
   }
 
@@ -275,10 +289,21 @@ class RethinkPlug extends DbPlug {
   /**
    * Convert a standard constructed query to a RethinkDb cursor
    */
-  _queryToCursor (cursor, query) {
+  async _queryToCursor (collectionId, query) {
+    let cursor = await this._getTable (collectionId);
+
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
-        cursor = cursor.filter (deepMatch (queryPt.filter));
+        const filter = Object.assign ({}, queryPt.filter);
+
+        for (const [filterKey, filterVal] of Object.entries (filter)) {
+          if (this._indexes.get (collectionId).has (filterKey)) {
+            cursor = cursor.getAll (filterVal, { index: filterKey })
+            delete filter[filterKey]
+          }
+        }
+
+        cursor = cursor.filter (deepMatch (filter));
       } else if (queryPt.type === 'elem') {
         // Apply `filter` method to cursor to filter out models that do not have array elements matching filter
         cursor = cursor.filter (dotPropRethinkKey (queryPt.arrKey).contains ((elem) => {
@@ -348,8 +373,12 @@ class RethinkPlug extends DbPlug {
         // Apply amt to `skip` cursor method
         cursor = cursor.skip (queryPt.skipAmount);
       } else if (queryPt.type === 'sort') {
-        // Create sort filter and apply to `orderBy` cursor method
-        cursor = cursor.orderBy (queryPt.desc ? R.desc (dotPropRethinkKey (queryPt.sortKey)) : R.asc (dotPropRethinkKey (queryPt.sortKey)));
+        if (this._indexes.get (collectionId).has (queryPt.sortKey)) {
+          cursor = cursor.orderBy (queryPt.desc ? { index: R.desc (queryPt.sortKey) } : { index: R.asc (queryPt.sortKey) });
+        } else {
+          // Create sort filter and apply to `orderBy` cursor method
+          cursor = cursor.orderBy (queryPt.desc ? R.desc (dotPropRethinkKey (queryPt.sortKey)) : R.asc (dotPropRethinkKey (queryPt.sortKey)));
+        }
       } else if (queryPt.type === 'gt') {
         // Create `gt` filter using provided key and min and apply to `filter` cursor method
         cursor = cursor.filter (dotPropRethinkKey (queryPt.key).gt (queryPt.min));
@@ -416,11 +445,8 @@ class RethinkPlug extends DbPlug {
     // Wait for building to finish
     await this._building;
 
-    // Get table by provided collection ID
-    const table = await this._getTable (collectionId);
-
     // Fetch, map, and return found Model instance data found by cursor constructed from provided query
-    return (await this._fetchDocs (this._queryToCursor (table, query))).map ((rawModelRes) => {
+    return (await this._fetchDocs (await this._queryToCursor (collectionId, query))).map ((rawModelRes) => {
       // Parse raw model data to model data
       return this._handleRawModel (rawModelRes);
     });
@@ -433,11 +459,8 @@ class RethinkPlug extends DbPlug {
     // Wait for building to finish
     await this._building;
 
-    // Get table by provided collection ID
-    const table = await this._getTable (collectionId);
-
     // Construct cursor from provided query, and use it to fetch single Model instance data
-    const rawModelRes = await this._fetchDoc (this._queryToCursor (table, query));
+    const rawModelRes = await this._fetchDoc (await this._queryToCursor (collectionId, query));
 
     // Parse raw model data to model data and return
     return this._handleRawModel (rawModelRes);
@@ -450,22 +473,16 @@ class RethinkPlug extends DbPlug {
     // Wait for building to finish
     await this._building;
 
-    // Get table by provided collection ID
-    const table = await this._getTable (collectionId);
-
     // Fetch count of matching Model instance data
-    return await this._queryToCursor (table, query).count ().run (this._rethinkConn);
+    return await (await this._queryToCursor (collectionId, query)).count ().run (this._rethinkConn);
   }
 
   /**
    * Get sum of data by provided key of all matching Model data by collection ID and constructed query
    */
   async sum (collectionId, query, key) {
-    // Get table by provided collection ID
-    const table = await this._getTable (collectionId);
-
     // Fetch sum of matching Model instance data's matching fields
-    return await this._queryToCursor (table, query).sum (key).run (this._rethinkConn);
+    return await (await this._queryToCursor (collectionId, query)).sum (key).run (this._rethinkConn);
   }
 
   /**
@@ -489,11 +506,8 @@ class RethinkPlug extends DbPlug {
     // Wait for building to finish
     await this._building;
 
-    // Get table by provided collection ID
-    const table = await this._getTable (collectionId);
-
     // Find and remove matching Model instance data by provided query
-    await this._queryToCursor (table, query).delete ().run (this._rethinkConn);
+    await (await this._queryToCursor (collectionId, query)).delete ().run (this._rethinkConn);
   }
 
   /**

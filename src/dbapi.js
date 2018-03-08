@@ -203,12 +203,12 @@ class DbApi {
   /**
    * Tell a database plug to prepare database for a new Model
    */
-  async initCollection (Model) {
+  async initCollection (Model, indexes) {
     // Get collection ID of provided Model
     const collectionId = modelCollectionId (Model);
 
     // Tell plug to prepare for new collection
-    this._plug.initCollection (collectionId);
+    this._plug.initCollection (collectionId, indexes);
   }
 }
 
