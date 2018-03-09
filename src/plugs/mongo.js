@@ -18,8 +18,6 @@ class MongoPlug extends DbPlug {
   constructor (config) {
     super ();
 
-    this._indexes = new Map ();
-
     // Store config
     this._config = config;
 
