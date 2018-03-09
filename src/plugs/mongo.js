@@ -18,6 +18,8 @@ class MongoPlug extends DbPlug {
   constructor (config) {
     super ();
 
+    this._indexes = new Map ();
+
     // Store config
     this._config = config;
 
@@ -62,6 +64,13 @@ class MongoPlug extends DbPlug {
    */
   initCollection (collectionId) {
     // MongoDB just works, we dont need to do anything
+  }
+
+  async createIndex (collectionId, name, indexes) {
+    // TODO: please standardization i am suicidal
+    await this._db.collection (collectionId).createIndex (indexes, {
+      name: name,
+    });
   }
 
   /**

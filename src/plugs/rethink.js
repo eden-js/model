@@ -198,8 +198,6 @@ class RethinkPlug extends DbPlug {
     // If this collection has already been initiated, ignore
     if (this._preparedTables.has (collectionId)) return;
 
-    this._indexes.set (collectionId, indexes);
-
     await this._building;
 
     // Add promise that resolves when table created to prepared tables promise map
@@ -211,15 +209,26 @@ class RethinkPlug extends DbPlug {
       }
 
       await R.table (collectionId).wait ().run (this._rethinkConn);
-
-      await Promise.all (Array.from (indexes.values ()).map (async (indexKey) => {
-        try {
-          await R.table (collectionId).indexCreate (indexKey).run (this._rethinkConn);
-        } catch (err) { }
-        
-        await R.table (collectionId).indexWait (indexKey).run (this._rethinkConn);
-      }));
     }) ());
+  }
+
+  async createIndex (collectionId, name, indexes) {
+    const indexKeys = Object.keys (indexes);
+    const rethinkName = indexKeys.sort ().join ('+');
+
+    if (this._indexes.get (collectionId) == null) {
+      this._indexes.set (collectionId, new Set ([rethinkName]));
+    } else {
+      this._indexes.get (collectionId).add ([rethinkName]);
+    }
+
+    await this._building;
+
+    try {
+      await R.table (collectionId).indexCreate (rethinkName, indexKeys.sort ().map (indexKey => R.row (indexKey))).run (this._rethinkConn);
+    } catch (err) {  }
+
+    await R.table (collectionId).indexWait (rethinkName).run (this._rethinkConn);
   }
 
   /**
@@ -294,16 +303,17 @@ class RethinkPlug extends DbPlug {
 
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
-        const filter = Object.assign ({}, queryPt.filter);
+        const rethinkName = Object.keys (queryPt.filter).sort ().join ('+');
 
-        for (const [filterKey, filterVal] of Object.entries (filter)) {
-          if (this._indexes.get (collectionId).has (filterKey)) {
-            cursor = cursor.getAll (filterVal, { index: filterKey })
-            delete filter[filterKey]
-          }
+        if (this._indexes.has (collectionId) && this._indexes.get (collectionId).has (rethinkName)) {
+          const values = Object.entries (queryPt.filter).sort (([aKey], [bKey]) => {
+            return aKey.localeCompare (bKey);
+          }).map (filterEntry => filterEntry[1]);
+
+          cursor = cursor.getAll (values, { index: rethinkName })
+        } else {
+          cursor = cursor.filter (deepMatch (queryPt.filter));
         }
-
-        cursor = cursor.filter (deepMatch (filter));
       } else if (queryPt.type === 'elem') {
         // Apply `filter` method to cursor to filter out models that do not have array elements matching filter
         cursor = cursor.filter (dotPropRethinkKey (queryPt.arrKey).contains ((elem) => {
@@ -373,10 +383,9 @@ class RethinkPlug extends DbPlug {
         // Apply amt to `skip` cursor method
         cursor = cursor.skip (queryPt.skipAmount);
       } else if (queryPt.type === 'sort') {
-        if (this._indexes.get (collectionId).has (queryPt.sortKey)) {
+        if (this._indexes.has (collectionId) && this._indexes.get (collectionId).has (queryPt.sortKey)) {
           cursor = cursor.orderBy (queryPt.desc ? { index: R.desc (queryPt.sortKey) } : { index: R.asc (queryPt.sortKey) });
         } else {
-          // Create sort filter and apply to `orderBy` cursor method
           cursor = cursor.orderBy (queryPt.desc ? R.desc (dotPropRethinkKey (queryPt.sortKey)) : R.asc (dotPropRethinkKey (queryPt.sortKey)));
         }
       } else if (queryPt.type === 'gt') {

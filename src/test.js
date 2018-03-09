@@ -92,13 +92,15 @@ async function testWhere (Model) {
 	console.log ('-- Testing where');
 	await testSimpleQuery ({
 		Model               : Model,
-		query               : Model.where ({ a: 1 }),
+		query               : Model.where ({ a: 1, b: 2 }),
 		testMatchEntries    : [
-			{ a: 1 },
+			{ a: 1, b: 2 },
+			{ a: 1, b: 2, c: 1 },
 		],
 		testNotMatchEntries : [
-			{ a: 2 },
-			{ a: { x: 1 } },
+			{ a: 1 },
+			{ b: 2 },
+			{ a: { x: 1 }, b: 2 },
 			// { a: [1] },
 		],
 	});
@@ -509,7 +511,8 @@ async function test (plug) {
 
 	console.log ('- Testing indexed...')
 	class IndexModel extends DbModel {}
-	await db.register (IndexModel, new Set (['a']));
+	await db.register (IndexModel);
+	await IndexModel.createIndex ("wow", { a: 1, b: 1 });
 
 	await testWhere (IndexModel);
 	await testSort (IndexModel);

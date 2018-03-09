@@ -210,6 +210,14 @@ class DbApi {
     // Tell plug to prepare for new collection
     this._plug.initCollection (collectionId, indexes);
   }
+
+  async createIndex (Model, name, indexes) {
+    // Get collection ID of provided Model
+    const collectionId = modelCollectionId (Model);
+
+    // Tell plug to prepare for new collection
+    this._plug.createIndex (collectionId, name, indexes);
+  }
 }
 
 // Export module

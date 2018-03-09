@@ -33,7 +33,7 @@ class Db {
   /**
    * Register a Model class with this database
    */
-  async register (Model, indexes) {
+  async register (Model) {
     // Ensure Model is Model class
     assert.instanceOf (Model.prototype, DbModel, "Model must be a DbModel extension");
 
@@ -41,7 +41,7 @@ class Db {
     Model.__db = this._dbApi;
 
     // Tell dbg to prepare for new collection
-    await this._dbApi.initCollection (Model, indexes);
+    await this._dbApi.initCollection (Model);
   }
 }
 
