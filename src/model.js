@@ -45,6 +45,10 @@ class DbModel {
     };
   }
 
+  static async createIndex (name, indexes) {
+    await this.__db.createIndex (this, name, indexes);
+  }
+
   /**
    * Model instance prop of methods for getting raw plug-specific components
    */

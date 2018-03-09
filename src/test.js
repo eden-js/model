@@ -89,23 +89,25 @@ async function testSimpleQuery (opts) {
 }
 
 async function testWhere (Model) {
-	console.log ('- Testing where');
+	console.log ('-- Testing where');
 	await testSimpleQuery ({
 		Model               : Model,
-		query               : Model.where ({ a: 1 }),
+		query               : Model.where ({ a: 1, b: 2 }),
 		testMatchEntries    : [
-			{ a: 1 },
+			{ a: 1, b: 2 },
+			{ a: 1, b: 2, c: 1 },
 		],
 		testNotMatchEntries : [
-			{ a: 2 },
-			{ a: { x: 1 } },
+			{ a: 1 },
+			{ b: 2 },
+			{ a: { x: 1 }, b: 2 },
 			// { a: [1] },
 		],
 	});
 }
 
 async function testDeepWhere (Model) {
-	console.log ('- Testing deep where');
+	console.log ('-- Testing deep where');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.where ({ a: { x: 1 } }),
@@ -121,7 +123,7 @@ async function testDeepWhere (Model) {
 }
 
 async function testElemVal (Model) {
-	console.log ('- Testing elem val');
+	console.log ('-- Testing elem val');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.elem ('a', 1),
@@ -141,7 +143,7 @@ async function testElemVal (Model) {
 }
 
 async function testElemObj (Model) {
-	console.log ('- Testing elem obj');
+	console.log ('-- Testing elem obj');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.elem ('a', { x: 1 }),
@@ -159,7 +161,7 @@ async function testElemObj (Model) {
 }
 
 async function testLt (Model) {
-	console.log ('- Testing lt');
+	console.log ('-- Testing lt');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.lt ('a', 100),
@@ -178,7 +180,7 @@ async function testLt (Model) {
 }
 
 async function testGt (Model) {
-	console.log ('- Testing gt');
+	console.log ('-- Testing gt');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.gt ('a', 100),
@@ -197,7 +199,7 @@ async function testGt (Model) {
 }
 
 async function testLte (Model) {
-	console.log ('- Testing lte');
+	console.log ('-- Testing lte');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.lte ('a', 100),
@@ -217,7 +219,7 @@ async function testLte (Model) {
 }
 
 async function testGte (Model) {
-	console.log ('- Testing gte');
+	console.log ('-- Testing gte');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.gte ('a', 100),
@@ -237,7 +239,7 @@ async function testGte (Model) {
 }
 
 async function testNe (Model) {
-	console.log ('- Testing ne');
+	console.log ('-- Testing ne');
 	await testSimpleQuery ({
 		Model               : Model,
 		// query               : Model.ne ('a', 'a').limit (100).ne ('a', 'b'),
@@ -260,7 +262,7 @@ async function testNe (Model) {
 }
 
 async function testNin (Model) {
-	console.log ('- Testing nin');
+	console.log ('-- Testing nin');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.nin ('a', ['a', 'b']),
@@ -281,7 +283,7 @@ async function testNin (Model) {
 }
 
 async function testIn (Model) {
-	console.log ('- Testing in');
+	console.log ('-- Testing in');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.in ('a', ['a', 'b']),
@@ -302,7 +304,7 @@ async function testIn (Model) {
 }
 
 async function testMatch (Model) {
-	console.log ('- Testing match');
+	console.log ('-- Testing match');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.match ('a', /^[Ww][aoe]+w( lad)?$/),
@@ -320,7 +322,7 @@ async function testMatch (Model) {
 }
 
 async function testOr (Model) {
-	console.log ('- Testing or');
+	console.log ('-- Testing or');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.or ({ a: 1, b: 2 }, { a: 2, b: 1 }, { c: 'a' }, { c: 'b' }),
@@ -347,7 +349,7 @@ async function testOr (Model) {
 }
 
 async function testAnd (Model) {
-	console.log ('- Testing and');
+	console.log ('-- Testing and');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.and ({ a: 1 }, { b: 2 }),
@@ -366,7 +368,7 @@ async function testAnd (Model) {
 }
 
 async function testLimit (Model) {
-	console.log ('- Testing limit');
+	console.log ('-- Testing limit');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.limit (2),
@@ -382,7 +384,7 @@ async function testLimit (Model) {
 }
 
 async function testSort (Model) {
-	console.log ('- Testing sort');
+	console.log ('-- Testing sort');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.sort ('a'),
@@ -406,7 +408,7 @@ async function testSort (Model) {
 }
 
 async function testSortSkip (Model) {
-	console.log ('- Testing sort-skip');
+	console.log ('-- Testing sort-skip');
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.sort ('a').skip (1),
@@ -429,7 +431,7 @@ async function testSortSkip (Model) {
 }
 
 function testGetSet (Model) {
-	console.log ('- Testing get/set');
+	console.log ('-- Testing get/set');
 	const model = new Model ({ a: 1, b: { a: 2 } });
 
 	assert.strictEqual (model.get ('a'), 1, 'Model data should initially have `a` be 1');
@@ -449,7 +451,7 @@ function testGetSet (Model) {
 }
 
 async function testModel (Model) {
-	console.log ('- Testing model storage');
+	console.log ('-- Testing model storage');
 
 	await Model.remove ({});
 
@@ -480,9 +482,12 @@ async function test (plug) {
 	const db = new Db (plug);
 
 	class Model extends DbModel {}
-	await db.register (Model);
 
+	console.log ('- Testing basic model functionality...')
 	testGetSet (Model);
+
+	console.log ('- Testing standard...')
+	await db.register (Model);
 
 	await testModel (Model);
 
@@ -503,6 +508,14 @@ async function test (plug) {
 	await testLimit (Model);
 	await testSort (Model);
 	await testSortSkip (Model);
+
+	console.log ('- Testing indexed...')
+	class IndexModel extends DbModel {}
+	await db.register (IndexModel);
+	await IndexModel.createIndex ("wow", { a: 1, b: 1 });
+
+	await testWhere (IndexModel);
+	await testSort (IndexModel);
 }
 
 ;(async () => {
