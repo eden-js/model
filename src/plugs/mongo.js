@@ -65,6 +65,8 @@ class MongoPlug extends DbPlug {
   }
 
   async createIndex (collectionId, name, indexes) {
+    await this._building;
+    
     // TODO: please standardization i am suicidal
     await this._db.collection (collectionId).createIndex (indexes, {
       name: name,

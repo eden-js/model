@@ -110,6 +110,11 @@ class DbApi {
     // Find single Model instance data matching provided ID
     const foundValue = await this._plug.findById (collectionId, id);
 
+    // Return null if no found value
+    if (foundValue == null) {
+      return null;
+    }
+
     // Return found instance data
     return foundValue.object;
   }
