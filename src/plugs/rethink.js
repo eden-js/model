@@ -568,7 +568,7 @@ class RethinkPlug extends DbPlug {
     swappedReplaceObject.id = id;
 
     // Execute replace query using provided cursor and provided replacement object
-    await table.get (id).replace (swappedReplaceObject).run (this._rethinkConn);
+    await table.get (id).update (swappedReplaceObject).run (this._rethinkConn);
   }
 
   /**
