@@ -66,7 +66,7 @@ class MongoPlug extends DbPlug {
 
   async createIndex (collectionId, name, indexes) {
     await this._building;
-    
+
     // TODO: please standardization i am suicidal
     await this._db.collection (collectionId).createIndex (indexes, {
       name: name,
@@ -313,7 +313,7 @@ class MongoPlug extends DbPlug {
    */
   async removeById (collectionId, id) {
     // Wait for building to finish
-    await this._building
+    await this._building;
 
     // Construct MQuery cursor from collection ID
     const mQuery = MQuery (this._db.collection (collectionId));
@@ -341,13 +341,39 @@ class MongoPlug extends DbPlug {
    */
   async replaceById (collectionId, id, newObject) {
     // Wait for building to finish
-    await this._building
+    await this._building;
 
     // Construct MQuery cursor from collection ID
     const mQuery = MQuery (this._db.collection (collectionId));
 
     // Find and update Model instance data by provided ID and replacement object
     await mQuery.where ({ _id: ObjectId(id) }).setOptions ({ overwrite: true }).update (newObject).exec ();
+  }
+
+  /**
+   * Update matching Model data from database by collection ID, Model ID, replacement data, and set of updated keys
+   */
+  async updateById (collectionId, id, newObject, updates) {
+    // Wait for building to finish
+    await this._building;
+
+    // Filter to only top level key updates
+    const topLevelUpdates = new Set (Array.from (updates).map (update => update.split (".")[0]));
+
+    // Create new object for storing only updated keys
+    const replaceObject = {};
+
+    // Iterate updated keys
+    for (const updatedKey of topLevelUpdates) {
+      // Set replace object key-val to be from new object
+      replaceObject[updatedKey] = newObject[updatedKey]
+    }
+
+    // Construct MQuery cursor from collection ID
+    const mQuery = MQuery (this._db.collection (collectionId));
+
+    // Find and update Model instance data by provided ID and replacement object
+    await mQuery.where ({ _id: ObjectId(id) }).setOptions ({ overwrite: true }).update (replaceObject).exec ();
   }
 
   /**

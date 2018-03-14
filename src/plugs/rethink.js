@@ -540,6 +540,38 @@ class RethinkPlug extends DbPlug {
   }
 
   /**
+   * Update matching Model data from database by collection ID, Model ID, replacement data, and set of updated keys
+   */
+  async updateById (collectionId, id, newObject, updates) {
+    // Wait for building to finish
+    await this._building;
+
+    // Get table by provided collection ID
+    const table = await this._getTable (collectionId);
+
+    // Filter to only top level key updates
+    const topLevelUpdates = new Set (Array.from (updates).map (update => update.split (".")[0]));
+
+    // Create new object for storing only updated keys
+    const replaceObject = {};
+
+    // Iterate updated keys
+    for (const updatedKey of topLevelUpdates) {
+      // Set replace object key-val to be from new object
+      replaceObject[updatedKey] = newObject[updatedKey]
+    }
+
+    // Swap the ID keys in the object before setting the ID
+    const swappedReplaceObject = swapKeys ('id', '_id', newObject);
+
+    // Set `id` of the data to be the Model instance's db data ID
+    swappedReplaceObject.id = id;
+
+    // Execute replace query using provided cursor and provided replacement object
+    await table.get (id).replace (swappedReplaceObject).run (this._rethinkConn);
+  }
+
+  /**
    * Insert Model data from database by collection ID and return Model ID
    */
   async insert (collectionId, object) {

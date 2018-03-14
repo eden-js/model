@@ -470,12 +470,19 @@ async function testModel (Model) {
 	assert.strictEqual (model.get ('a'), 1);
 	assert.strictEqual (model2.get ('a'), 1);
 
-	model.set ('a', 2);
+	model.set ('b', 2);
 	await model.save ();
 	await model2.refresh ();
 
-	assert.strictEqual (model.get ('a'), 2);
-	assert.strictEqual (model2.get ('a'), 2);
+	assert.strictEqual (model.get ('b'), 2);
+	assert.strictEqual (model2.get ('b'), 2);
+
+	model.set ('a', 3);
+	await model.replace ();
+	await model2.refresh ();
+
+	assert.strictEqual (model.get ('a'), 3);
+	assert.strictEqual (model2.get ('a'), 3);
 }
 
 async function test (plug) {

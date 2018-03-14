@@ -66,7 +66,25 @@ class DbApi {
   /**
    * Save a Model instance to database
    */
-  async save (model, modelId = null) {
+  async save (model, updates, modelId = null) {
+    // Get collection ID of provided Model instance
+    const collectionId = modelInstanceCollectionId (model);
+
+    // Check if provided Model instance has an ID already
+    if (modelId == null) {
+      // Insert Model instance data and return the associated ID
+      return await this._plug.insert (collectionId, model.get ());
+    } else {
+      // Update stored Model instance data using existing associated ID and return null
+      await this._plug.updateById (collectionId, model.get ("_id"), model.get (), updates);
+      return null;
+    }
+  }
+
+  /**
+   * Save a Model instance to database
+   */
+  async replace (model, modelId = null) {
     // Get collection ID of provided Model instance
     const collectionId = modelInstanceCollectionId (model);
 
