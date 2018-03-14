@@ -19,6 +19,9 @@ class DbModel {
     // Set internal data from provided argument
     this.__data = data;
 
+    // Internal array for storing updates
+    this.__updates = new Set ();
+
     // Set internal ID from provided argument
     this.__id = id;
 
@@ -86,6 +89,8 @@ class DbModel {
       return;
     }
 
+    this.__updates.add (key);
+
     // Set internal value selected by dot-prop key
     DotProp.set (this.__data, key, value);
   }
@@ -143,18 +148,41 @@ class DbModel {
   }
 
   /**
-   * Save this Model instance's data to the database
+   * Save this Model instance's data updates to the database
    */
   async save () {
     // Ensure model is registered before saving model data
     assert.instanceOf(this.constructor.__db, DbApi, "Model must be registered.")
 
-    // Call internal DB API to save this Model instance
-    const id = await this.constructor.__db.save (this, this.__id);
+    // Call internal DB API to save changes to this Model instance
+    const id = await this.constructor.__db.save (this, this.__updates, this.__id);
 
+    // Set ID if ID returned
     if (id != null) {
       this.__id = id;
     }
+
+    // Reset internally stored updates
+    this.__updates = new Set ();
+  }
+
+  /**
+   * Save this Model instance's data to the database
+   */
+  async replace () {
+    // Ensure model is registered before saving model data
+    assert.instanceOf(this.constructor.__db, DbApi, "Model must be registered.")
+
+    // Call internal DB API to replace this Model instance
+    const id = await this.constructor.__db.replace (this, this.__id);
+
+    // Set ID if ID returned
+    if (id != null) {
+      this.__id = id;
+    }
+
+    // Reset internally stored updates
+    this.__updates = new Set ();
   }
 
   /**
@@ -188,6 +216,9 @@ class DbModel {
 
      // Replace this Model instance's internal data with fetched data from the database
      this.__data = await this.constructor.__db.findDataById (this.constructor, this.__id)
+
+     // Reset internally stored updates
+     this.__updates = new Set ();
    }
 
   /**
