@@ -556,10 +556,15 @@ class RethinkPlug extends DbPlug {
     const replaceObject = {};
 
     // Iterate updated keys
-    for (const updatedKey of topLevelUpdates) {
-      // Set replace object key-val to be from new object
-      replaceObject[updatedKey] = newObject[updatedKey]
-    }
+    await Promise.all (Array.from (topLevelUpdates).map (async (updatedKey) => {
+      if (newObject[updatedKey] != undefined) {
+        // Set replace object key-val to be from new object
+        replaceObject[updatedKey] = newObject[updatedKey];
+      } else {
+        // Remove the key if undefined in new object
+        await table.get (id).replace (R.row.without (updatedKey)).run (this._rethinkConn);
+      }
+    }));
 
     // Swap the ID keys in the object before setting the ID
     const swappedReplaceObject = swapKeys ('id', '_id', newObject);

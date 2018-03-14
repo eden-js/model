@@ -477,6 +477,13 @@ async function testModel (Model) {
 	assert.strictEqual (model.get ('b'), 2);
 	assert.strictEqual (model2.get ('b'), 2);
 
+	model.unset ('b');
+	await model.save ();
+	await model2.refresh ();
+
+	assert.equal (model.get ('b'), null);
+	assert.equal (model2.get ('b'), null);
+
 	model.set ('a', 3);
 	await model.replace ();
 	await model2.refresh ();

@@ -21,6 +21,7 @@ class DbModel {
 
     // Internal array for storing updates
     this.__updates = new Set ();
+    this.__fullUpdate = false;
 
     // Set internal ID from provided argument
     this.__id = id;
@@ -86,9 +87,11 @@ class DbModel {
     if (key instanceof Object && value == null) {
       const updateObj = key;
       Object.assign (this.__data, updateObj);
+      this.__fullUpdate = true;
       return;
     }
 
+    // Add change to internal updates set
     this.__updates.add (key);
 
     // Set internal value selected by dot-prop key
@@ -106,6 +109,7 @@ class DbModel {
       for (const key of keys) {
         // Delete prop by key
         DotProp.delete (this.__data, key);
+        this.__updates.add (key);
       }
 
       return;
@@ -115,12 +119,15 @@ class DbModel {
     if (key == null) {
       // Redefine internal data object
       this.__data = {};
-
+      this.__fullUpdate = true;
       return;
     }
 
     // Delete prop by key
     DotProp.delete (this.__data, key);
+
+    // Add change to internal updates set
+    this.__updates.add (key);
   }
 
   /**
@@ -133,6 +140,9 @@ class DbModel {
     const currValue = DotProp.get (this.__data, key);
     // Set value of prop selected by dot-prop key to be plus the increment amount (default 1)
     DotProp.set (this.__data, key, currValue + amt);
+
+    // Add change to internal updates set
+    this.__updates.add (key);
   }
 
   /**
@@ -145,12 +155,20 @@ class DbModel {
     const currValue = DotProp.get (this.__data, key);
     // Set value of prop selected by dot-prop key to be minus the increment amount (default 1)
     DotProp.set (this.__data, key, currValue - amt);
+
+    // Add change to internal updates set
+    this.__updates.add (key);
   }
 
   /**
    * Save this Model instance's data updates to the database
    */
   async save () {
+    // Use replace instead of has been fully updated in any way
+    if (this.__fullUpdate) {
+      return await this.replace ();
+    }
+
     // Ensure model is registered before saving model data
     assert.instanceOf(this.constructor.__db, DbApi, "Model must be registered.")
 
