@@ -219,7 +219,7 @@ class RethinkPlug extends DbPlug {
     if (this._indexes.get (collectionId) == null) {
       this._indexes.set (collectionId, new Set ([rethinkName]));
     } else {
-      this._indexes.get (collectionId).add ([rethinkName]);
+      this._indexes.get (collectionId).add (rethinkName);
     }
 
     await this._building;
@@ -556,10 +556,15 @@ class RethinkPlug extends DbPlug {
     const replaceObject = {};
 
     // Iterate updated keys
-    for (const updatedKey of topLevelUpdates) {
-      // Set replace object key-val to be from new object
-      replaceObject[updatedKey] = newObject[updatedKey]
-    }
+    await Promise.all (Array.from (topLevelUpdates).map (async (updatedKey) => {
+      if (newObject[updatedKey] != undefined) {
+        // Set replace object key-val to be from new object
+        replaceObject[updatedKey] = newObject[updatedKey];
+      } else {
+        // Remove the key if undefined in new object
+        await table.get (id).replace (R.row.without (updatedKey)).run (this._rethinkConn);
+      }
+    }));
 
     // Swap the ID keys in the object before setting the ID
     const swappedReplaceObject = swapKeys ('id', '_id', newObject);
@@ -568,7 +573,7 @@ class RethinkPlug extends DbPlug {
     swappedReplaceObject.id = id;
 
     // Execute replace query using provided cursor and provided replacement object
-    await table.get (id).replace (swappedReplaceObject).run (this._rethinkConn);
+    await table.get (id).update (swappedReplaceObject).run (this._rethinkConn);
   }
 
   /**
