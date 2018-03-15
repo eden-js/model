@@ -79,42 +79,14 @@ function dotPropRethinkKey (key, initialCursor = null) {
 }
 
 /**
- * Flatten an object replacing nested structures with dotprop keys
- */
-function flatifyObj (obj) {
-  const flatObj = {}
-
-  function iterate (iteratedObj, path = "") {
-    for (const prop in iteratedObj) {
-      if (iteratedObj.hasOwnProperty(prop)) {
-        const fullPath = (path.length > 0 ? `${path}.${prop}` : `${prop}`)
-
-        if (typeof iteratedObj[prop] === "object" && !(iteratedObj[prop] instanceof RegExp)) {
-          iterate (iteratedObj[prop], fullPath);
-        } else {
-          flatObj[fullPath] = iteratedObj[prop]
-        }
-      }
-    }
-  }
-
-  iterate (obj);
-
-  return flatObj;
-}
-
-/**
  * Deeply match an object supporting dotprop keys and regex
  */
 function deepMatch (match, initialCursor = null) {
-  // Flatten recursive object to flat map of dotProp key to value
-  const flatFilter = flatifyObj (match);
-
   // Variable for storing RethinkDB ready filter
   let filterPart = null;
 
   // Iterate all properties of provided object
-  for (const [filterKey, filterVal] of Object.entries (flatFilter)) {
+  for (const [filterKey, filterVal] of Object.entries (match)) {
     // Variable for storing single constructed part of match
     let filterPartMatch = null;
 
