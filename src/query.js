@@ -1,6 +1,31 @@
 'use strict';
 
 /**
+ * Flatten an object replacing nested structures with dotprop keys
+ */
+function flatifyObj (obj) {
+  const flatObj = {}
+
+  function iterate (iteratedObj, path = "") {
+    for (const prop in iteratedObj) {
+      if (iteratedObj.hasOwnProperty(prop)) {
+        const fullPath = (path.length > 0 ? `${path}.${prop}` : `${prop}`)
+
+        if (typeof iteratedObj[prop] === "object" && !(iteratedObj[prop] instanceof RegExp)) {
+          iterate (iteratedObj[prop], fullPath);
+        } else {
+          flatObj[fullPath] = iteratedObj[prop]
+        }
+      }
+    }
+  }
+
+  iterate (obj);
+
+  return flatObj;
+}
+
+/**
  * Query builder class
  */
 class DbQuery {
@@ -106,7 +131,7 @@ class DbQuery {
       // Handle arg
       const filter = key;
       // Push query part for `filter` and return self
-      this.pts.push ({ type: 'filter', filter: filter });
+      this.pts.push ({ type: 'filter', filter: flatifyObj (filter) });
       return this;
     }
 
@@ -154,7 +179,7 @@ class DbQuery {
    */
   or (...matches) {
     // Push query part for `whereOr` and return self
-    this.pts.push ({ type: 'whereOr', matches: matches });
+    this.pts.push ({ type: 'whereOr', matches: matches.map (match => flatifyObj (match)) });
     return this;
   }
 
@@ -164,7 +189,7 @@ class DbQuery {
    */
   and (...matches) {
     // Push query part for `whereAnd` and return self
-    this.pts.push ({ type: 'whereAnd', matches: matches });
+    this.pts.push ({ type: 'whereAnd', matches: matches.map (match => flatifyObj (match)) });
     return this;
   }
 
