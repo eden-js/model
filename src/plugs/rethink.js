@@ -219,7 +219,7 @@ class RethinkPlug extends DbPlug {
     if (this._indexes.get (collectionId) == null) {
       this._indexes.set (collectionId, new Set ([rethinkName]));
     } else {
-      this._indexes.get (collectionId).add ([rethinkName]);
+      this._indexes.get (collectionId).add (rethinkName);
     }
 
     await this._building;
