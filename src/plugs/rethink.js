@@ -300,17 +300,19 @@ class RethinkPlug extends DbPlug {
    */
   async _queryToCursor (collectionId, query) {
     let cursor = await this._getTable (collectionId);
+    let usedGetIndex = false;
 
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
         const rethinkName = Object.keys (queryPt.filter).sort ().join ('+');
 
-        if (this._indexes.has (collectionId) && this._indexes.get (collectionId).has (rethinkName)) {
+        if (!usedGetIndex && this._indexes.has (collectionId) && this._indexes.get (collectionId).has (rethinkName)) {
           const values = Object.entries (queryPt.filter).sort (([aKey], [bKey]) => {
             return aKey.localeCompare (bKey);
           }).map (filterEntry => filterEntry[1]);
 
           cursor = cursor.getAll (values, { index: rethinkName })
+          usedGetIndex = true;
         } else {
           cursor = cursor.filter (deepMatch (queryPt.filter));
         }
