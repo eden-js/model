@@ -273,6 +273,7 @@ class RethinkPlug extends DbPlug {
   async _queryToCursor (collectionId, query) {
     let cursor = await this._getTable (collectionId);
     let usedGetIndex = false;
+    let cursorIsTable = true;
 
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
@@ -357,7 +358,7 @@ class RethinkPlug extends DbPlug {
         // Apply amt to `skip` cursor method
         cursor = cursor.skip (queryPt.skipAmount);
       } else if (queryPt.type === 'sort') {
-        if (this._indexes.has (collectionId) && this._indexes.get (collectionId).has (queryPt.sortKey)) {
+        if (cursorIsTable && this._indexes.has (collectionId) && this._indexes.get (collectionId).has (queryPt.sortKey)) {
           cursor = cursor.orderBy (queryPt.desc ? { index: R.desc (queryPt.sortKey) } : { index: R.asc (queryPt.sortKey) });
         } else {
           cursor = cursor.orderBy (queryPt.desc ? R.desc (dotPropRethinkKey (queryPt.sortKey)) : R.asc (dotPropRethinkKey (queryPt.sortKey)));
@@ -375,6 +376,8 @@ class RethinkPlug extends DbPlug {
         // Create `lte` filter using provided key and min and apply to `filter` cursor method
         cursor = cursor.filter (dotPropRethinkKey (queryPt.key).le (queryPt.max));
       }
+
+      cursorIsTable = false;
     }
 
     // Return the fully constructed cursor
