@@ -198,7 +198,7 @@ class RethinkPlug extends DbPlug {
 
     try {
       if (indexKeys.length === 1) {
-        await R.table (collectionId).indexCreate (rethinkName, R.row (indexKeys[0])).run (this._rethinkConn);
+        await R.table (collectionId).indexCreate (rethinkName, dotPropRethinkKey (indexKeys[0])).run (this._rethinkConn);
       } else {
         await R.table (collectionId).indexCreate (rethinkName, indexKeys.sort ().map (indexKey => dotPropRethinkKey (indexKey))).run (this._rethinkConn);
       }
