@@ -89,6 +89,8 @@ async function testSimpleQuery (opts) {
 }
 
 async function testWhere (Model) {
+	console.log ('-- Testing where');
+
 	await testSimpleQuery ({
 		Model               : Model,
 		query               : Model.where ({ a: { b: 1 }, b: 2 }),
@@ -102,6 +104,20 @@ async function testWhere (Model) {
 			{ a: { b: 1 } },
 			{ a: { a: 1, b: 1 } },
 			// { a: 1 },
+			// { a: [1] },
+		],
+	});
+
+	await testSimpleQuery ({
+		Model               : Model,
+		query               : Model.where ({ a: 1 }),
+		testMatchEntries    : [
+			{ a: 1, b: 2 },
+			{ a: 1 },
+		],
+		testNotMatchEntries : [
+			{ a: 2, b: 2 },
+			{ a: 2 },
 			// { a: [1] },
 		],
 	});
@@ -529,6 +545,7 @@ async function test (plug) {
 	await db.register (IndexModel);
 	await IndexModel.createIndex ('wow', { a: -1, b: -1 });
 	await IndexModel.createIndex ('wew', { 'a.b': -1, b: -1 });
+	await IndexModel.createIndex ('a', { a: -1, });
 
 	await testWhere (IndexModel);
 	await testSort (IndexModel);

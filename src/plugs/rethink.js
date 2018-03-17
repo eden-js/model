@@ -197,8 +197,12 @@ class RethinkPlug extends DbPlug {
     await this._building;
 
     try {
-      await R.table (collectionId).indexCreate (rethinkName, indexKeys.sort ().map (indexKey => dotPropRethinkKey (indexKey))).run (this._rethinkConn);
-    } catch (err) {  }
+      if (indexKeys.length === 1) {
+        await R.table (collectionId).indexCreate (rethinkName, R.row (indexKeys[0])).run (this._rethinkConn);
+      } else {
+        await R.table (collectionId).indexCreate (rethinkName, indexKeys.sort ().map (indexKey => dotPropRethinkKey (indexKey))).run (this._rethinkConn);
+      }
+    } catch (err) { }
 
     await R.table (collectionId).indexWait (rethinkName).run (this._rethinkConn);
   }
@@ -284,7 +288,11 @@ class RethinkPlug extends DbPlug {
             return aKey.localeCompare (bKey);
           }).map (filterEntry => filterEntry[1]);
 
-          cursor = cursor.getAll (values, { index: rethinkName })
+          if (values.length === 1) {
+            cursor = cursor.getAll (values[0], { index: rethinkName })
+          } else {
+            cursor = cursor.getAll (values, { index: rethinkName })
+          }
           usedGetIndex = true;
         } else {
           cursor = cursor.filter (deepMatch (queryPt.filter));
