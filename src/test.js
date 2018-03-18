@@ -307,9 +307,11 @@ async function testIn (Model) {
 		testMatchEntries    : [
 			{ a: 'a' },
 			{ a: 'b' },
+			{ a: 'b', b: 'a' },
+			{ a: 'b', b: 'c' },
 		],
 		testNotMatchEntries : [
-			{ a: 'c' },
+			{ a: 'c', b: 'a' },
 			{ a: { x: 'a' } },
 			{ a: { x: 'b' } },
 			{ a: [{ x: 'a' }] },
@@ -549,6 +551,7 @@ async function test (plug) {
 
 	await testWhere (IndexModel);
 	await testSort (IndexModel);
+	await testIn (IndexModel);
 }
 
 ;(async () => {

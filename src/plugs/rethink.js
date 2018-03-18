@@ -276,14 +276,13 @@ class RethinkPlug extends DbPlug {
    */
   async _queryToCursor (collectionId, query) {
     let cursor = await this._getTable (collectionId);
-    let usedGetIndex = false;
     let cursorIsTable = true;
 
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
         const rethinkName = Object.keys (queryPt.filter).sort ().join ('+');
 
-        if (!usedGetIndex && this._indexes.has (collectionId) && this._indexes.get (collectionId).has (rethinkName)) {
+        if (cursorIsTable && this._indexes.has (collectionId) && this._indexes.get (collectionId).has (rethinkName)) {
           const values = Object.entries (queryPt.filter).sort (([aKey], [bKey]) => {
             return aKey.localeCompare (bKey);
           }).map (filterEntry => filterEntry[1]);
@@ -293,7 +292,6 @@ class RethinkPlug extends DbPlug {
           } else {
             cursor = cursor.getAll (values, { index: rethinkName })
           }
-          usedGetIndex = true;
         } else {
           cursor = cursor.filter (deepMatch (queryPt.filter));
         }
@@ -316,22 +314,26 @@ class RethinkPlug extends DbPlug {
           cursor = cursor.filter (dotPropRethinkKey (queryPt.key).default (null).ne (val));
         }
       } else if (queryPt.type === 'in') {
-        const inMatchFilters = [];
+        if (cursorIsTable && this._indexes.has (collectionId) && this._indexes.get (collectionId).has (queryPt.key)) {
+          cursor = cursor.getAll (R.args (queryPt.vals), { index: queryPt.key })
+        } else {
+          const inMatchFilters = [];
 
-        // Add a custom filter method to the cursor
-        // TODO: use a lambda instead of multiple `eq`s
-        for (const val of queryPt.vals) {
-          inMatchFilters.push (deepMatch ({ [queryPt.key]: val }));
-        }
+          // Add a custom filter method to the cursor
+          // TODO: use a lambda instead of multiple `eq`s
+          for (const val of queryPt.vals) {
+            inMatchFilters.push (deepMatch ({ [queryPt.key]: val }));
+          }
 
-        if (inMatchFilters.length === 0) {
-          // If no filters, do nothing
-        } else if (inMatchFilters.length === 1) {
-          // If 1 filter, provide as only filter
-          cursor = cursor.filter (inMatchFilters[0]);
-        } else if (inMatchFilters.length) {
-          // If 2 or more filters, use all as `or` arguments to use in filter
-          cursor = cursor.filter (R.or (...inMatchFilters));
+          if (inMatchFilters.length === 0) {
+            // If no filters, do nothing
+          } else if (inMatchFilters.length === 1) {
+            // If 1 filter, provide as only filter
+            cursor = cursor.filter (inMatchFilters[0]);
+          } else if (inMatchFilters.length) {
+            // If 2 or more filters, use all as `or` arguments to use in filter
+            cursor = cursor.filter (R.or (...inMatchFilters));
+          }
         }
       } else if (queryPt.type === 'whereOr') {
         // Iterate query part possible match objects to make RethinkDB ready filters
