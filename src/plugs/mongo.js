@@ -375,7 +375,7 @@ class MongoPlug extends DbPlug {
     const mQuery = MQuery (this._db.collection (collectionId));
 
     // Find and update Model instance data by provided ID and replacement object
-    await mQuery.where ({ _id: ObjectId(id) }).setOptions ({ overwrite: true }).update (replaceObject).exec ();
+    await mQuery.where ({ _id: ObjectId(id) }).update (replaceObject).exec ();
   }
 
   /**
