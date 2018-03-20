@@ -1,8 +1,9 @@
 'use strict';
 
 // Require dependencies
-const R   = require ('rethinkdb');
-// const RE2 = require ('re2');
+const R       = require ('rethinkdb');
+const RPool   = require ('rethinkdb-pool');
+// const RE2     = require ('re2');
 
 // Require local dependencies
 const DbPlug = require ('../dbplug')
@@ -159,8 +160,8 @@ class RethinkPlug extends DbPlug {
    * Async method that resolves on internal API build completion
    */
   async _build () {
-    // Await connecting to rethinkdb, and internally store client connection
-    this._rethinkConn = await R.connect (this._config);
+    // Connect to rethinkdb pool
+    this._rethinkConn = RPool (R, this._config);
   }
 
   /**
@@ -174,37 +175,48 @@ class RethinkPlug extends DbPlug {
 
     // Add promise that resolves when table created to prepared tables promise map
     this._preparedTables.set (collectionId, (async () => {
-      const tableExists = await R.tableList ().contains (collectionId).run (this._rethinkConn);
+      // Check if table already exists
+      const tableExists = await this._rethinkConn.run (R.tableList ().contains (collectionId));
 
-      if (!tableExists) {
-        await R.tableCreate (collectionId).run (this._rethinkConn);
-      }
+      // Create if doesn't already exist
+      if (!tableExists) await this._rethinkConn.run (R.tableCreate (collectionId));
 
-      await R.table (collectionId).wait ().run (this._rethinkConn);
+      // Await table creation
+      await this._rethinkConn.run (R.table (collectionId).wait ());
     }) ());
   }
 
   async createIndex (collectionId, name, indexes) {
+    // Get keys of all provided indexed props
     const indexKeys = Object.keys (indexes);
-    const rethinkName = indexKeys.sort ().join ('+');
+    // Generate standard format rethinkdb index name from index keys
+    const rethinkIndexName = indexKeys.sort ().join ('+');
 
+    // If set of indexes doesn't already exist for specific `collectionId`
     if (this._indexes.get (collectionId) == null) {
-      this._indexes.set (collectionId, new Set ([rethinkName]));
+      // Create set of indexes with this index name included
+      this._indexes.set (collectionId, new Set ([rethinkIndexName]));
     } else {
-      this._indexes.get (collectionId).add (rethinkName);
+      // Add index name to set of indexes
+      this._indexes.get (collectionId).add (rethinkIndexName);
     }
 
     await this._building;
 
+    // Catch all errors since will error if already exists (safe to ignore)
     try {
+      // If only single prop being indexed
       if (indexKeys.length === 1) {
-        await R.table (collectionId).indexCreate (rethinkName, dotPropRethinkKey (indexKeys[0])).run (this._rethinkConn);
+        // Create index for specific prop by rethinkdb path generated from index key
+        await this._rethinkConn.run (R.table (collectionId).indexCreate (rethinkIndexName, dotPropRethinkKey (indexKeys[0])));
       } else {
-        await R.table (collectionId).indexCreate (rethinkName, indexKeys.sort ().map (indexKey => dotPropRethinkKey (indexKey))).run (this._rethinkConn);
+        // Create index for array of prop by rethinkdb paths generated from index keys
+        await this._rethinkConn.run (R.table (collectionId).indexCreate (rethinkIndexName, indexKeys.sort ().map (indexKey => dotPropRethinkKey (indexKey))));
       }
     } catch (err) { }
 
-    await R.table (collectionId).indexWait (rethinkName).run (this._rethinkConn);
+    // Await the index's creation
+    await this._rethinkConn.run (R.table (collectionId).indexWait (rethinkIndexName));
   }
 
   /**
@@ -247,11 +259,8 @@ class RethinkPlug extends DbPlug {
    * Fetch docs by a provided cursor
    */
   async _fetchDocs (cursor) {
-    // Get doc cursor from executing provided cursor
-    const docCursor = await cursor.run (this._rethinkConn);
-
-    // Convert doc cursor to array of docs
-    const docs = await docCursor.toArray ();
+    // Get docs from executing provided cursor
+    const docs = await this._rethinkConn.run (cursor);
 
     // Return fetched docs
     return docs;
@@ -261,11 +270,8 @@ class RethinkPlug extends DbPlug {
    * Fetch single doc by provided cursor
    */
   async _fetchDoc (cursor) {
-    // Limit cursor to 1 and get doc cursor from executing provided cursor
-    const docCursor = await cursor.limit (1).run (this._rethinkConn);
-
-    // Convert doc cursor to array of docs
-    const docs = await docCursor.toArray ();
+    // Limit cursor to 1 and get docs from executing provided cursor
+    const docs = await this._rethinkConn.run (cursor.limit (1));
 
     // Return only fetched doc
     return docs[0] || null;
@@ -275,24 +281,34 @@ class RethinkPlug extends DbPlug {
    * Convert a standard constructed query to a RethinkDb cursor
    */
   async _queryToCursor (collectionId, query) {
+    // Create a cursor from fetching a table by `collectionId`
     let cursor = await this._getTable (collectionId);
+    // Whether or not the cursor is still a table
     let cursorIsTable = true;
 
+    // Iterate all query parts to build a query
     for (const queryPt of query.pts) {
       if (queryPt.type === 'filter') {
-        const rethinkName = Object.keys (queryPt.filter).sort ().join ('+');
+        // Generate standard format rethinkdb index name from filter
+        const rethinkIndexName = Object.keys (queryPt.filter).sort ().join ('+');
 
-        if (cursorIsTable && this._indexes.has (collectionId) && this._indexes.get (collectionId).has (rethinkName)) {
+        // If cursor is still table and an index by the generated name has been registered
+        if (cursorIsTable && this._indexes.has (collectionId) && this._indexes.get (collectionId).has (rethinkIndexName)) {
+          // Sort the object values by the same standard as the object keys
           const values = Object.entries (queryPt.filter).sort (([aKey], [bKey]) => {
             return aKey.localeCompare (bKey);
           }).map (filterEntry => filterEntry[1]);
 
+          // If there is only a single value
           if (values.length === 1) {
-            cursor = cursor.getAll (values[0], { index: rethinkName })
+            // Index-based query using single indexed value
+            cursor = cursor.getAll (values[0], { index: rethinkIndexName })
           } else {
-            cursor = cursor.getAll (values, { index: rethinkName })
+            // Index-based query using sorted array of object values
+            cursor = cursor.getAll (values, { index: rethinkIndexName })
           }
         } else {
+          // Filter using generated deep-match-filter from filter
           cursor = cursor.filter (deepMatch (queryPt.filter));
         }
       } else if (queryPt.type === 'elem') {
@@ -368,9 +384,12 @@ class RethinkPlug extends DbPlug {
         // Apply amt to `skip` cursor method
         cursor = cursor.skip (queryPt.skipAmount);
       } else if (queryPt.type === 'sort') {
+        // If cursor is still table and an index with the sortKey as name has been registered
         if (cursorIsTable && this._indexes.has (collectionId) && this._indexes.get (collectionId).has (queryPt.sortKey)) {
+          // Index-based sort using the provided key
           cursor = cursor.orderBy (queryPt.desc ? { index: R.desc (queryPt.sortKey) } : { index: R.asc (queryPt.sortKey) });
         } else {
+          // Order by sort using generated rethinkdb path from provided sort key
           cursor = cursor.orderBy (queryPt.desc ? R.desc (dotPropRethinkKey (queryPt.sortKey)) : R.asc (dotPropRethinkKey (queryPt.sortKey)));
         }
       } else if (queryPt.type === 'gt') {
@@ -387,6 +406,7 @@ class RethinkPlug extends DbPlug {
         cursor = cursor.filter (dotPropRethinkKey (queryPt.key).le (queryPt.max));
       }
 
+      // First iteration finished, must no longer be table
       cursorIsTable = false;
     }
 
@@ -428,7 +448,7 @@ class RethinkPlug extends DbPlug {
     const table = await this._getTable (collectionId);
 
     // get doc
-    const rawModelRes = await table.get (id).run (this._rethinkConn);
+    const rawModelRes = await this._rethinkConn.run (table.get (id));
 
     // Parse raw model data to model data and return
     return this._handleRawModel (rawModelRes);
@@ -470,7 +490,7 @@ class RethinkPlug extends DbPlug {
     await this._building;
 
     // Fetch count of matching Model instance data
-    return await (await this._queryToCursor (collectionId, query)).count ().run (this._rethinkConn);
+    return await this._rethinkConn.run ((await this._queryToCursor (collectionId, query)).count ());
   }
 
   /**
@@ -478,7 +498,7 @@ class RethinkPlug extends DbPlug {
    */
   async sum (collectionId, query, key) {
     // Fetch sum of matching Model instance data's matching fields
-    return await (await this._queryToCursor (collectionId, query)).sum (key).run (this._rethinkConn);
+    return await this._rethinkConn.run ((await this._queryToCursor (collectionId, query)).sum (key));
   }
 
   /**
@@ -492,7 +512,7 @@ class RethinkPlug extends DbPlug {
     const table = await this._getTable (collectionId);
 
     // Find and remove single Model instance data by provided ID
-    await table.get (id).delete ().run (this._rethinkConn);
+    await this._rethinkConn.run (table.get (id).delete ());
   }
 
   /**
@@ -503,7 +523,7 @@ class RethinkPlug extends DbPlug {
     await this._building;
 
     // Find and remove matching Model instance data by provided query
-    await (await this._queryToCursor (collectionId, query)).delete ().run (this._rethinkConn);
+    await this._rethinkConn.run ((await this._queryToCursor (collectionId, query)).delete ());
   }
 
   /**
@@ -523,7 +543,7 @@ class RethinkPlug extends DbPlug {
     swappedReplaceObject.id = id;
 
     // Execute replace query using provided cursor and provided replacement object
-    await table.get (id).replace (swappedReplaceObject).run (this._rethinkConn);
+    await this._rethinkConn.run (table.get (id).replace (swappedReplaceObject));
   }
 
   /**
@@ -549,7 +569,7 @@ class RethinkPlug extends DbPlug {
         replaceObject[updatedKey] = newObject[updatedKey];
       } else {
         // Remove the key if undefined in new object
-        await table.get (id).replace (R.row.without (updatedKey)).run (this._rethinkConn);
+        await this._rethinkConn.run (table.get (id).replace (R.row.without (updatedKey)));
       }
     }));
 
@@ -560,7 +580,7 @@ class RethinkPlug extends DbPlug {
     swappedReplaceObject.id = id;
 
     // Execute replace query using provided cursor and provided replacement object
-    await table.get (id).update (swappedReplaceObject).run (this._rethinkConn);
+    await this._rethinkConn.run (table.get (id).update (swappedReplaceObject));
   }
 
   /**
@@ -574,7 +594,7 @@ class RethinkPlug extends DbPlug {
     const table = await this._getTable (collectionId);
 
     // Insert provided object data into provided table and get response
-    const insertRes = await table.insert (swapKeys ('id', '_id', object)).run (this._rethinkConn);
+    const insertRes = await this._rethinkConn.run (table.insert (swapKeys ('id', '_id', object)));
 
     // Return Model ID from insertation response
     return insertRes['generated_keys'][0];
