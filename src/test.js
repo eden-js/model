@@ -93,12 +93,13 @@ async function testWhere (Model) {
 
 	await testSimpleQuery ({
 		Model               : Model,
-		query               : Model.where ({ a: { b: 1 }, b: 2 }),
+		query               : Model.where ({ a: { b: 1 }, b: 2, c: null }),
 		testMatchEntries    : [
 			{ a: { b: 1 }, b: 2 },
 			{ a: { a: 1, b: 1 }, b: 2 },
 		],
 		testNotMatchEntries : [
+			{ a: { b: 1 }, b: 2, c: true },
 			{ a: { b: 1 }, b: 3 },
 			{ a: { a: 1, b: 1 }, b: 3 },
 			{ a: { b: 1 } },
