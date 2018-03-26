@@ -11,7 +11,7 @@ function flatifyObj (obj) {
       if (iteratedObj.hasOwnProperty(prop)) {
         const fullPath = (path.length > 0 ? `${path}.${prop}` : `${prop}`)
 
-        if (typeof iteratedObj[prop] === "object" && !(iteratedObj[prop] instanceof RegExp)) {
+        if (iteratedObj[prop] != null && !(iteratedObj[prop] instanceof Array) && typeof iteratedObj[prop] === "object" && !(iteratedObj[prop] instanceof RegExp)) {
           iterate (iteratedObj[prop], fullPath);
         } else {
           flatObj[fullPath] = iteratedObj[prop]
@@ -134,6 +134,7 @@ class DbQuery {
       this.pts.push ({ type: 'filter', filter: flatifyObj (filter) });
       return this;
     }
+
 
     // Push query part for `filter` and return self
     this.pts.push ({ type: 'filter', filter: { [key]: value } });
