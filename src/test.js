@@ -32,7 +32,7 @@ async function testQueryActions (opts) {
 
 	if (opts.ignores.indexOf ('sum') === -1) {
 		const modelSum = await opts.query.sum ('val');
-		assert.strictEqual (modelSum, opts.models.length, 'Sum of fetched model\'s `val` is the wrong amount');
+		assert.strictEqual (modelSum, opts.models.length * 2, 'Sum of fetched model\'s `val` is the wrong amount');
 	}
 
 	if (opts.ignores.indexOf ('findOne') === -1) {
@@ -60,7 +60,7 @@ async function testSimpleQuery (opts) {
 		if (entriesArr == null) continue;
 
 		for (const entry of entriesArr) {
-			entry.val = 1;
+			entry.val = 2;
 		}
 	}
 
@@ -227,6 +227,7 @@ async function testLte (Model) {
 			{ a: -1 },
 		],
 		testNotMatchEntries : [
+			{ },
 			{ a: 101 },
 			{ a: 500 },
 			{ a: { x: 1 } },
@@ -240,13 +241,15 @@ async function testGte (Model) {
 	console.log ('-- Testing gte');
 	await testSimpleQuery ({
 		Model               : Model,
-		query               : Model.gte ('a', 100),
+		query               : Model.gte ('a', 100).where ({ b: 10 }),
 		testMatchEntries    : [
-			{ a: 100 },
-			{ a: 101 },
-			{ a: 500 },
+			{ a: 100, b: 10 },
+			{ a: 101, b: 10 },
+			{ a: 500, b: 10 },
 		],
 		testNotMatchEntries : [
+			{ b: 10 },
+			{ a: 100, b: 1 },
 			{ a: 99 },
 			{ a: -1 },
 			{ a: [{ x: 100 }] },
@@ -308,17 +311,29 @@ async function testIn (Model) {
 		testMatchEntries    : [
 			{ a: 'a' },
 			{ a: 'b' },
-			{ a: 'b', b: 'a' },
-			{ a: 'b', b: 'c' },
+			{ a: 'a', b: 'a' },
 		],
 		testNotMatchEntries : [
-			{ a: 'c', b: 'a' },
-			{ a: { x: 'a' } },
-			{ a: { x: 'b' } },
-			{ a: [{ x: 'a' }] },
-			{ a: [{ x: 'b' }] },
+			{ a: 'c' },
 			// { a: ['a'] },
-			// { a: ['b'] },
+		],
+	});
+}
+
+async function testDeepIn (Model) {
+	console.log ('-- Testing deep in');
+	await testSimpleQuery ({
+		Model               : Model,
+		query               : Model.in ('a.a', ['a', 'b']),
+		testMatchEntries    : [
+			{ a: { a: 'a' } },
+			{ a: { a: 'b' } },
+		],
+		testNotMatchEntries : [
+			{ a: { a: 'c' } },
+			{ a: { b: 'a' } },
+			// { a: 'a' },
+			// { a: ['a'] },
 		],
 	});
 }
@@ -542,6 +557,7 @@ async function test (plug) {
 	await testNe (Model);
 	await testNin (Model);
 	await testIn (Model);
+	await testDeepIn (Model);
 	await testMatch (Model);
 	await testOr (Model);
 	await testAnd (Model);
@@ -559,6 +575,7 @@ async function test (plug) {
 	await testWhere (IndexModel);
 	await testSort (IndexModel);
 	await testIn (IndexModel);
+	await testDeepIn (IndexModel);
 }
 
 ;(async () => {

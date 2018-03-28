@@ -11,7 +11,7 @@ function flatifyObj (obj) {
       if (iteratedObj.hasOwnProperty(prop)) {
         const fullPath = (path.length > 0 ? `${path}.${prop}` : `${prop}`)
 
-        if (iteratedObj[prop] != null && !(iteratedObj[prop] instanceof Array) && typeof iteratedObj[prop] === "object" && !(iteratedObj[prop] instanceof RegExp)) {
+        if (iteratedObj[prop] != null && typeof iteratedObj[prop] === "object" && !(iteratedObj[prop] instanceof Array) && !(iteratedObj[prop] instanceof RegExp)) {
           iterate (iteratedObj[prop], fullPath);
         } else {
           flatObj[fullPath] = iteratedObj[prop]
