@@ -99,6 +99,7 @@ async function testWhere (Model) {
 			{ a: { a: 1, b: 1 }, b: 2 },
 		],
 		testNotMatchEntries : [
+			{ },
 			{ a: { b: 1 }, b: 2, c: true },
 			{ a: { b: 1 }, b: 3 },
 			{ a: { a: 1, b: 1 }, b: 3 },
@@ -117,6 +118,7 @@ async function testWhere (Model) {
 			{ a: 1 },
 		],
 		testNotMatchEntries : [
+			{ },
 			{ a: 2, b: 2 },
 			{ a: 2 },
 			// { a: [1] },
@@ -133,6 +135,7 @@ async function testDeepWhere (Model) {
 			{ a: { x: 1 } },
 		],
 		testNotMatchEntries : [
+			{  },
 			{ a: { x: 2 } },
 			// { a: 1 },
 			// { a: [1] },
@@ -151,6 +154,7 @@ async function testElemVal (Model) {
 			{ a: [3, 1, 2] },
 		],
 		testNotMatchEntries : [
+			{  },
 			{ a: [2, 3, 4] },
 			{ a: [4, 3, 2] },
 			{ a: [{ x: 1 }] },
@@ -170,6 +174,7 @@ async function testElemObj (Model) {
 			{ a: [{ x: 1 }, { x: 2 }] },
 		],
 		testNotMatchEntries : [
+			{  },
 			{ a: [{ x: 2 }] },
 			// { a: 1 },
 			// { a: { x: 1 } },
@@ -188,6 +193,7 @@ async function testLt (Model) {
 			{ a: -1 },
 		],
 		testNotMatchEntries : [
+			{  },
 			{ a: 101 },
 			{ a: 500 },
 			{ a: { x: 1 } },
@@ -207,6 +213,7 @@ async function testGt (Model) {
 			{ a: 500 },
 		],
 		testNotMatchEntries : [
+			{  },
 			{ a: 99 },
 			{ a: -1 },
 			{ a: [{ x: 1 }] },
@@ -248,6 +255,7 @@ async function testGte (Model) {
 			{ a: 500, b: 10 },
 		],
 		testNotMatchEntries : [
+			{  },
 			{ b: 10 },
 			{ a: 100, b: 1 },
 			{ a: 99 },
@@ -263,9 +271,9 @@ async function testNe (Model) {
 	console.log ('-- Testing ne');
 	await testSimpleQuery ({
 		Model               : Model,
-		// query               : Model.ne ('a', 'a').limit (100).ne ('a', 'b'),
 		query               : Model.ne ('a', 'a').ne ('a', 'b').ne ('c', true),
 		testMatchEntries    : [
+			{  },
 			{ a: 'c' },
 			{ a: { x: 'a' } },
 			{ a: { x: 'b' } },
@@ -288,6 +296,7 @@ async function testNin (Model) {
 		Model               : Model,
 		query               : Model.nin ('a', ['a', 'b']),
 		testMatchEntries    : [
+			{  },
 			{ a: 'c' },
 			{ a: { x: 'a' } },
 			{ a: { x: 'b' } },
@@ -314,6 +323,7 @@ async function testIn (Model) {
 			{ a: 'a', b: 'a' },
 		],
 		testNotMatchEntries : [
+			{  },
 			{ a: 'c' },
 			// { a: ['a'] },
 		],
@@ -330,6 +340,7 @@ async function testDeepIn (Model) {
 			{ a: { a: 'b' } },
 		],
 		testNotMatchEntries : [
+			{  },
 			{ a: { a: 'c' } },
 			{ a: { b: 'a' } },
 			// { a: 'a' },
@@ -349,9 +360,13 @@ async function testMatch (Model) {
 			{ a: 'waaaw lad' },
 		],
 		testNotMatchEntries : [
+			{  },
 			{ a: 'wewee' },
 			{ a: 'WEW LAD' },
 			{ a: 'wAw' },
+			// { a: { } },
+			// { a: ['wew'] },
+			// { a: 1 },
 		],
 	});
 }
@@ -369,6 +384,7 @@ async function testOr (Model) {
 			{ a: 1, b: 1, c: 'b' },
 		],
 		testNotMatchEntries : [
+			{  },
 			{ c: 'c' },
 			{ a: 1 },
 			{ b: 1 },
@@ -393,6 +409,7 @@ async function testAnd (Model) {
 			{ a: 1, b: 2 },
 		],
 		testNotMatchEntries : [
+			{  },
 			{ a: 1, b: 3 },
 			{ a: 2, b: 2 },
 			{ a: { x: 1 } },
@@ -518,8 +535,8 @@ async function testModel (Model) {
 	await model.save ();
 	await model2.refresh ();
 
-	assert.equal (model.get ('b'), null);
-	assert.equal (model2.get ('b'), null);
+	assert.strictEqual (model.get ('b'), undefined);
+	assert.strictEqual (model2.get ('b'), undefined);
 	assert.strictEqual (model.get ('a'), 1);
 	assert.strictEqual (model2.get ('a'), 1);
 
@@ -529,8 +546,8 @@ async function testModel (Model) {
 
 	assert.strictEqual (model.get ('a'), 3);
 	assert.strictEqual (model2.get ('a'), 3);
-	assert.equal (model.get ('b'), null);
-	assert.equal (model2.get ('b'), null);
+	assert.strictEqual (model.get ('b'), undefined);
+	assert.strictEqual (model2.get ('b'), undefined);
 }
 
 async function test (plug) {
