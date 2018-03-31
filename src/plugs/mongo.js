@@ -374,12 +374,13 @@ class MongoPlug extends DbPlug {
         // Set replace object key-val to be from new object
         replaceObject[updatedKey] = newObject[updatedKey];
       } else {
+        // Set field on unset object to be key from new object
         unsetObject[updatedKey] = 0;
       }
     }
 
     // Set mongodb-special field for unsetting fields
-    replaceObject['$unset'] = unsetObject;
+    if (Object.keys (unsetObject).length > 0) replaceObject['$unset'] = unsetObject;
 
     // Construct MQuery cursor from collection ID
     const mQuery = MQuery (this._db.collection (collectionId));
