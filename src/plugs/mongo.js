@@ -365,11 +365,21 @@ class MongoPlug extends DbPlug {
     // Create new object for storing only updated keys
     const replaceObject = {};
 
+    // Create new object for storing only unset keys
+    const unsetObject = {};
+
     // Iterate updated keys
     for (const updatedKey of topLevelUpdates) {
-      // Set replace object key-val to be from new object
-      replaceObject[updatedKey] = newObject[updatedKey]
+      if (newObject[updatedKey] != null) {
+        // Set replace object key-val to be from new object
+        replaceObject[updatedKey] = newObject[updatedKey];
+      } else {
+        unsetObject[updatedKey] = 0;
+      }
     }
+
+    // Set mongodb-special field for unsetting fields
+    replaceObject['$unset'] = unsetObject;
 
     // Construct MQuery cursor from collection ID
     const mQuery = MQuery (this._db.collection (collectionId));
