@@ -182,6 +182,7 @@ class DbModel {
 
     // Reset internally stored updates
     this.__updates = new Set ();
+    this.__fullUpdate = false;
   }
 
   /**
@@ -201,6 +202,7 @@ class DbModel {
 
     // Reset internally stored updates
     this.__updates = new Set ();
+    this.__fullUpdate = false;
   }
 
   /**
