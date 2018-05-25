@@ -21,7 +21,7 @@ class DbModel {
 
     // Internal array for storing updates
     this.__updates = new Set ();
-    this.__fullUpdate = false;
+    this.__fullUpdate = true;
 
     // Set internal ID from provided argument
     this.__id = id;
