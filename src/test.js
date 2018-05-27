@@ -500,6 +500,13 @@ function testGetSet (Model) {
 	assert.strictEqual (model.get ('b.a'), 1, 'Model data should now have `b.a` be 1');
 	assert.strictEqual (model.get ('b').a, 1, 'Full `b` model data should now have `a` be 1');
 	assert.strictEqual (model.get ().b.a, 1, 'Full model data should now have `b.a` be 1');
+
+	model.push ('c', 1);
+	model.set ('d', [1]);
+	model.push ('d', 2);
+
+	assert.deepEqual (model.get ('c'), [1], 'Model data should now have `c` be [1]');
+	assert.deepEqual (model.get ('d'), [1, 2], 'Model data should now have `d` be [1, 2]');
 }
 
 async function testModel (Model) {

@@ -161,6 +161,26 @@ class DbModel {
   }
 
   /**
+   * Push a value to a field
+   */
+  push (key, val) {
+    // Get current value of prop selected by dot-prop key
+    const currValue = DotProp.get (this.__data, key) || [];
+
+    // Ensure currValue is not an existing non-array field
+    assert.instanceOf (currValue, Array, "Can't push to non-array field");
+
+    // Push to array
+    currValue.push (val);
+
+    // Set value of prop to be array
+    DotProp.set (this.__data, key, currValue);
+
+    // Add change to internal updates set
+    this.__updates.add (key);
+  }
+
+  /**
    * Save this Model instance's data updates to the database
    */
   async save () {
