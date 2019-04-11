@@ -242,4 +242,4 @@ class DbApi {
 }
 
 // Export module
-module.exports = exports = DbApi;
+module.exports = DbApi;

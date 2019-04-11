@@ -1,7 +1,7 @@
 const MONGO_URL = process.env.MONGO_URL || 'localhost:27017';
 const RETHINK_URL = process.env.RETHINK_URL || 'localhost:28015';
 
-const assert  = require('chai').assert;
+const { assert } = require('chai');
 
 const { Db, DbModel, plugs: { RethinkPlug, MongoPlug } } = require('./index');
 

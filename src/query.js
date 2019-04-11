@@ -7,15 +7,13 @@ function flatifyObj(obj) {
   const flatObj = {};
 
   function iterate(iteratedObj, path = '') {
-    for (const prop in iteratedObj) {
-      if (iteratedObj.hasOwnProperty(prop)) {
-        const fullPath = (path.length > 0 ? `${path}.${prop}` : `${prop}`);
+    for (const [prop, propVal] of Object.entries(iteratedObj)) {
+      const fullPath = (path.length > 0 ? `${path}.${prop}` : `${prop}`);
 
-        if (iteratedObj[prop] != null && typeof iteratedObj[prop] === 'object' && !(iteratedObj[prop] instanceof Array) && !(iteratedObj[prop] instanceof RegExp)) {
-          iterate(iteratedObj[prop], fullPath);
-        } else {
-          flatObj[fullPath] = iteratedObj[prop];
-        }
+      if (propVal != null && typeof propVal === 'object' && !(propVal instanceof Array) && !(propVal instanceof RegExp)) {
+        iterate(propVal, fullPath);
+      } else {
+        flatObj[fullPath] = propVal;
       }
     }
   }
@@ -123,7 +121,8 @@ class DbQuery {
   }
 
   /**
-   * Filter only Model instances where the specified key matches the specified val, can also be given a filter object
+   * Filter only Model instances where the specified key matches
+   * the specified val, can also be given a filter object
    */
   where(key, value = null) {
     // If only argument is an Object, handle as a filter object
@@ -176,7 +175,8 @@ class DbQuery {
   }
 
   /**
-   * Filter only Model instances by filter using multiple filter objects, where only one has to match
+   * Filter only Model instances by filter using multiple
+   * filter objects, where only one has to match
    */
   or(...matches) {
     // Push query part for `whereOr` and return self
@@ -195,7 +195,8 @@ class DbQuery {
   }
 
   /**
-   * Only return Model instances where the value of the specified key is greater than the specified amount
+   * Only return Model instances where the value of the
+   * specified key is greater than the specified amount
    */
   gt(key, min) {
     // Push query part for `gt` and return self
@@ -204,7 +205,8 @@ class DbQuery {
   }
 
   /**
-   * Only return model instances where the value of the specified key is less than the specified amount
+   * Only return model instances where the value of the
+   * specified key is less than the specified amount
    */
   lt(key, max) {
     // Push query part for `lt` and return self
@@ -213,7 +215,8 @@ class DbQuery {
   }
 
   /**
-   * Only return Model instances where the value of the specified key is greater or equal to than the specified amount
+   * Only return Model instances where the value of the specified
+   * key is greater or equal to than the specified amount
    */
   gte(key, min) {
     // Push query part for `gte` and return self
@@ -222,7 +225,8 @@ class DbQuery {
   }
 
   /**
-   * Only return model instances where the value of the specified key is less than or equal to the specified amount
+   * Only return model instances where the value of the specified
+   * key is less than or equal to the specified amount
    */
   lte(key, max) {
     // Push query part for `lte` and return self
@@ -272,4 +276,4 @@ class DbQuery {
 }
 
 // Exports
-module.exports = exports = DbQuery;
+module.exports = DbQuery;

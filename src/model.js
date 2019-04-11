@@ -1,8 +1,8 @@
 
 
 // Require dependencies
-const DotProp = require('dot-prop');
-const assert  = require('chai').assert;
+const DotProp    = require('dot-prop');
+const { assert } = require('chai');
 
 // Require local dependencies
 const DbQuery = require('./query');
@@ -351,4 +351,4 @@ class DbModel {
 }
 
 // Exports
-module.exports = exports = DbModel;
+module.exports = DbModel;

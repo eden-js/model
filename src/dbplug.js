@@ -8,4 +8,4 @@ class DbPlug {
 }
 
 // Export module
-module.exports = exports = DbPlug;
+module.exports = DbPlug;

@@ -1,7 +1,7 @@
 
 
 // Require dependencies
-const assert  = require('chai').assert;
+const { assert } = require('chai');
 
 // Require local dependencies
 const DbApi       = require('./dbapi');
@@ -46,7 +46,7 @@ class Db {
 }
 
 // Export classes
-module.exports = exports = {
+module.exports = {
   Db,
   DbModel,
 

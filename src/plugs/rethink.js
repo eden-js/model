@@ -601,4 +601,4 @@ class RethinkPlug extends DbPlug {
 }
 
 // Exports
-module.exports = exports = RethinkPlug;
+module.exports = RethinkPlug;
