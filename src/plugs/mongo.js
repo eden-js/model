@@ -420,4 +420,4 @@ class MongoPlug extends DbPlug {
 }
 
 // Exports
-exports = MongoPlug;
+module.exports = MongoPlug;
