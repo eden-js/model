@@ -1,13 +1,13 @@
 {
   "name": "@eden-js/model",
   "description": "",
-  "version": "1.12.0",
+  "version": "1.12.1",
   "dependencies": {
-    "chai": "^4.1.2",
-    "doasync": "^2.0.0",
-    "dot-prop": "^4.2.0",
+    "chai": "^4.2.0",
+    "doasync": "^2.0.1",
+    "dot-prop": "^5.0.0",
     "eden-mquery": "^3.0.0",
-    "mongodb": "^3.0.2",
+    "mongodb": "^3.2.3",
     "pluralize": "^7.0.0",
     "rethinkdb": "^2.3.3",
     "rethinkdb-pool": "^1.1.0"
@@ -22,11 +22,11 @@
   "author": "installgen2",
   "license": "LGPL-3.0",
   "devDependencies": {
-    "eslint": "^5.13.0",
+    "eslint": "^5.16.0",
     "@edenjs/eslint-config-eden": "^2.0.14",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-plugin-import": "^2.16.0",
-    "eslint-plugin-jsx-a11y": "^6.2.0",
+    "eslint-plugin-jsx-a11y": "^6.2.1",
     "eslint-plugin-react": "^7.12.4"
   }
 }

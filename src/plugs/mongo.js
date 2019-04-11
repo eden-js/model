@@ -60,7 +60,7 @@ class MongoPlug extends DbPlug {
   /**
    * Prepare database for new collection of provided collection ID
    */
-  initCollection(collectionId) {
+  initCollection() {
     // MongoDB just works, we dont need to do anything
   }
 
@@ -72,7 +72,7 @@ class MongoPlug extends DbPlug {
       await this._db.collection(collectionId).createIndex(indexes, {
         name,
       });
-    } catch (err) { }
+    } catch (err) { /* who care */ }
   }
 
   /**
@@ -138,7 +138,8 @@ class MongoPlug extends DbPlug {
         if (nextPt != null && nextPt.type === 'ne' && nextPt.key === queryPt.key) {
           neBuf.push(queryPt.val);
         } else if (neBuf.length > 0) {
-          // Apply supplied negative match and previous matches array to `where` and `nin` cursor method
+          // Apply supplied negative match and previous
+          // matches array to `where` and `nin` cursor method
           cursor = cursor.where(queryPt.key).nin([...neBuf, queryPt.val]);
           neBuf = [];
         } else {
@@ -229,7 +230,8 @@ class MongoPlug extends DbPlug {
     // Construct MQuery cursor from collection ID
     const mQuery = MQuery(this._db.collection(collectionId));
 
-    // Fetch, map, and return found Model instance data found by cursor constructed from provided query
+    // Fetch, map, and return found Model instance
+    // data found by cursor constructed from provided query
     return (await this._queryToCursor(mQuery, query).find().exec()).map((rawModelRes) => {
       // Get internal ID from returned data
       const fetchedModelId = rawModelRes._id.toString();
@@ -292,12 +294,14 @@ class MongoPlug extends DbPlug {
     // Construct MQuery cursor from collection ID
     const mQuery = MQuery(this._db.collection(collectionId));
 
-    // Construct cursor from provided query, and use it to fetch count of matching Model instance data
+    // Construct cursor from provided query, and use it
+    // to fetch count of matching Model instance data
     return await this._queryToCursor(mQuery, query).count().exec();
   }
 
   /**
-   * Get sum of data by provided key of all matching Model data by collection ID and constructed query
+   * Get sum of data by provided key of all matching Model data
+   * by collection ID and constructed query
    */
   async sum(collectionId, query, key) {
     // Wait for building to finish
@@ -306,7 +310,8 @@ class MongoPlug extends DbPlug {
     // Construct MQuery cursor from collection ID
     const mQuery = MQuery(this._db.collection(collectionId));
 
-    // Construct cursor from provided query, and use it to get sum of data by provided key of all matching Model data
+    // Construct cursor from provided query, and use it to get sum
+    // of data by provided key of all matching Model data
     return await this._queryToCursor(mQuery, query).sum(`$${key}`).exec();
   }
 
@@ -349,11 +354,13 @@ class MongoPlug extends DbPlug {
     const mQuery = MQuery(this._db.collection(collectionId));
 
     // Find and update Model instance data by provided ID and replacement object
-    await mQuery.where({ _id : ObjectId(id) }).setOptions({ overwrite : true }).update(newObject).exec();
+    await mQuery.where({ _id : ObjectId(id) }).setOptions({ overwrite : true })
+      .update(newObject).exec();
   }
 
   /**
-   * Update matching Model data from database by collection ID, Model ID, replacement data, and set of updated keys
+   * Update matching Model data from database by collection ID, Model ID, replacement data,
+   * and set of updated keys
    */
   async updateById(collectionId, id, newObject, updates) {
     // Wait for building to finish
@@ -399,6 +406,11 @@ class MongoPlug extends DbPlug {
     // Get DB collection from collection ID
     const collection = this._db.collection(collectionId);
 
+    // Convert _id to ObjectId if present
+    if (object._id !== null && object._id !== undefined) {
+      object._id = ObjectId(object._id);
+    }
+
     // Insert Model instance data into database and get inserted ID
     const id = (await collection.insertOne(object)).insertedId.toString();
 
@@ -408,4 +420,4 @@ class MongoPlug extends DbPlug {
 }
 
 // Exports
-module.exports = exports = MongoPlug;
+exports = MongoPlug;
