@@ -1,12 +1,12 @@
 {
   "name": "@edenjs/model",
   "description": "",
-  "version": "1.12.2",
+  "version": "1.12.3",
   "dependencies": {
+    "@edenjs/mquery": "^3.2.0",
     "chai": "^4.2.0",
     "doasync": "^2.0.1",
     "dot-prop": "^5.0.0",
-    "eden-mquery": "^3.0.0",
     "mongodb": "^3.2.3",
     "pluralize": "^7.0.0",
     "rethinkdb": "^2.3.3",
