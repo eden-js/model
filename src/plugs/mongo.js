@@ -2,7 +2,7 @@
 
 // Require dependencies
 const { MongoClient, ObjectId } = require('mongodb');
-const MQuery = require('eden-mquery');
+const MQuery = require('@edenjs/mquery');
 const p = require('doasync');
 
 // Require local dependencies
