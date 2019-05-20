@@ -1,7 +1,7 @@
 {
   "name": "@edenjs/model",
   "description": "",
-  "version": "1.12.3",
+  "version": "1.12.4",
   "dependencies": {
     "@edenjs/mquery": "^3.2.0",
     "chai": "^4.2.0",
