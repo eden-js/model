@@ -1,7 +1,7 @@
 {
   "name": "@edenjs/model",
   "description": "",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "dependencies": {
     "chai": "^4.2.0",
     "doasync": "^2.0.1",
